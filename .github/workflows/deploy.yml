@@ -3,7 +3,9 @@ name: Deploy Habit Tracker to GitHub Pages
 on:
   push:
     branches: [main]
-    paths: [habit-tracker/**]
+    paths:
+      - habit-tracker/**
+      - vizitka.html
   workflow_dispatch:
 
 permissions:
@@ -36,6 +38,9 @@ jobs:
         working-directory: habit-tracker
         env:
           VITE_BASE: /Kmaro92/
+
+      - name: Copy vizitka.html to dist
+        run: cp vizitka.html habit-tracker/dist/vizitka.html
 
       - uses: actions/upload-pages-artifact@v3
         with:

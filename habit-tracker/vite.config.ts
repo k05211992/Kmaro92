@@ -8,3 +8,4 @@ export default defineConfig({
     host: true, // слушать на всех интерфейсах (0.0.0.0)
   },
 })
+

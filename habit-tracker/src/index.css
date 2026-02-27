@@ -1,0 +1,105 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Базовые стили тёмной темы ───────────────────────────────────────────── */
+:root {
+  --neon-green:  #39ff85;
+  --neon-cyan:   #22d3ee;
+  --neon-purple: #c084fc;
+  --bg-page:     #080c14;
+  --bg-card:     #0d1117;
+  --bg-elevated: #161b22;
+  --bg-hover:    #1c2333;
+  --border:      #30363d;
+  --text-primary:   #e6edf3;
+  --text-secondary: #8b949e;
+  --text-muted:     #484f58;
+}
+
+html, body, #root {
+  background: var(--bg-page);
+  color: var(--text-primary);
+  min-height: 100vh;
+}
+
+/* ── Анимация галочки ────────────────────────────────────────────────────── */
+@keyframes checkPop {
+  0%   { transform: scale(0.2) rotate(-15deg); opacity: 0; }
+  55%  { transform: scale(1.35) rotate(6deg);  opacity: 1; }
+  75%  { transform: scale(0.9)  rotate(-3deg); }
+  100% { transform: scale(1)    rotate(0deg);  opacity: 1; }
+}
+
+.animate-check-pop {
+  animation: checkPop 0.3s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+/* ── Анимация прогресс-бара ──────────────────────────────────────────────── */
+@keyframes barGrow {
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
+}
+
+/* ── Убираем стрелки у number input ─────────────────────────────────────── */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* ── Скроллбар тёмный ───────────────────────────────────────────────────── */
+::-webkit-scrollbar        { width: 6px; height: 6px; }
+::-webkit-scrollbar-track  { background: var(--bg-elevated); }
+::-webkit-scrollbar-thumb  { background: #374151; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #4b5563; }
+
+/* ── Select в тёмной теме ───────────────────────────────────────────────── */
+select option { background: #1f2937; color: #e6edf3; }
+
+html { scroll-behavior: smooth; }
+
+/* ── Тёмный тултип ──────────────────────────────────────────────────────── */
+.tip-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  cursor: help;
+}
+.tip-wrap .tip-box {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1f2937;
+  color: #e6edf3;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.5;
+  padding: 7px 10px;
+  border-radius: 7px;
+  border: 1px solid #374151;
+  white-space: nowrap;
+  box-shadow: 0 4px 16px #0008;
+  z-index: 100;
+  pointer-events: none;
+}
+/* стрелка вниз */
+.tip-wrap .tip-box::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: #374151;
+}
+.tip-wrap:hover .tip-box {
+  display: block;
+}

@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Трекер привычек — меняй жизнь по одному дню</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg0: #07070f;
+      --bg1: #0e0e1c;
+      --bg2: #13131f;
+      --card: rgba(255,255,255,0.04);
+      --border: rgba(255,255,255,0.07);
+      --a1: #ffaa80;
+      --a2: #ff7f5c;
+      --a3: #ffd84d;
+      --a4: #ff5fa0;
+      --text: #f0f0f8;
+      --muted: #6b7280;
+      --muted2: #9ca3af;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg0);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* ─── Background ─── */
+    .bg-grad {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 80% 60% at 10% 0%, rgba(255,127,92,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 90% 100%, rgba(255,216,77,0.10) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 40% at 50% 50%, rgba(255,95,160,0.06) 0%, transparent 60%),
+        var(--bg0);
+    }
+
+    body::after {
+      content: '';
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,170,128,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,170,128,0.03) 1px, transparent 1px);
+      background-size: 44px 44px;
+    }
+
+    /* ─── Layout ─── */
+    .wrap {
+      position: relative; z-index: 1;
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    section { padding: 80px 0; }
+
+    /* ─── NAV ─── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border);
+      background: rgba(7,7,15,0.7);
+    }
+
+    .nav-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      max-width: 1040px; margin: 0 auto; padding: 16px 24px;
+    }
+
+    .nav-logo {
+      display: flex; align-items: center; gap: 10px;
+      font-weight: 800; font-size: 17px; letter-spacing: -0.3px;
+      background: linear-gradient(90deg, var(--a1), var(--a3));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      text-decoration: none;
+    }
+
+    .nav-logo svg { width: 26px; height: 26px; flex-shrink: 0; }
+
+    .nav-cta {
+      display: inline-flex; align-items: center; gap-7px;
+      padding: 8px 20px; border-radius: 99px; border: none; cursor: pointer;
+      font-size: 14px; font-weight: 700; color: var(--bg0); text-decoration: none;
+      background: linear-gradient(135deg, var(--a2), var(--a3));
+      transition: transform .18s, box-shadow .18s;
+    }
+    .nav-cta:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,127,92,.35); }
+
+    /* ─── HERO ─── */
+    .hero { padding: 100px 0 80px; text-align: center; }
+
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 16px; border-radius: 99px; margin-bottom: 28px;
+      background: rgba(255,170,128,0.1); border: 1px solid rgba(255,170,128,0.22);
+      font-size: 13px; font-weight: 600; color: var(--a1);
+    }
+
+    .hero-badge-dot {
+      width: 7px; height: 7px; border-radius: 50%; background: var(--a3);
+      animation: blink 2s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+      0%,100% { opacity: 1; } 50% { opacity: 0.3; }
+    }
+
+    .hero h1 {
+      font-size: clamp(38px, 8vw, 76px);
+      font-weight: 900;
+      letter-spacing: -2px;
+      line-height: 1.05;
+      margin-bottom: 24px;
+    }
+
+    .grad-text {
+      background: linear-gradient(135deg, var(--a3) 0%, var(--a1) 40%, var(--a2) 70%, var(--a4) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      filter: drop-shadow(0 0 32px rgba(255,170,128,0.35));
+    }
+
+    .hero-sub {
+      font-size: clamp(17px, 2.5vw, 21px);
+      color: var(--muted2);
+      max-width: 580px; margin: 0 auto 44px;
+      line-height: 1.55;
+    }
+
+    .hero-sub strong { color: var(--text); font-weight: 600; }
+
+    .hero-actions {
+      display: flex; flex-wrap: wrap; gap: 14px;
+      justify-content: center; align-items: center;
+      margin-bottom: 60px;
+    }
+
+    /* ─── CTA Button ─── */
+    .btn-primary {
+      position: relative; overflow: hidden;
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 17px 36px; border-radius: 16px; border: none; cursor: pointer;
+      font-size: 17px; font-weight: 800; color: #0a0a0a; text-decoration: none;
+      background: linear-gradient(135deg, var(--a3), var(--a1), var(--a2));
+      background-size: 200% 200%; background-position: 0% 50%;
+      box-shadow: 0 0 0 0 rgba(255,216,77,.6);
+      animation: ctaPulse 2.4s ease-in-out infinite;
+      transition: transform .18s cubic-bezier(.34,1.56,.64,1), background-position .4s;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-4px) scale(1.03);
+      background-position: 100% 50%;
+      animation-play-state: paused;
+      box-shadow: 0 12px 40px rgba(255,170,128,.45);
+    }
+
+    .btn-primary:active { transform: scale(.97); }
+
+    .btn-primary::after {
+      content: '';
+      position: absolute; top: 0; left: -80%;
+      width: 50%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.25), transparent);
+      animation: shimmer 2.6s ease-in-out infinite;
+    }
+
+    @keyframes ctaPulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(255,216,77,.5); }
+      50%      { box-shadow: 0 0 0 14px rgba(255,216,77,.0); }
+    }
+
+    @keyframes shimmer {
+      0%    { left: -80%; }
+      60%,100% { left: 150%; }
+    }
+
+    .btn-primary svg { width: 20px; height: 20px; fill: currentColor; flex-shrink: 0; }
+
+    .btn-ghost {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 16px 28px; border-radius: 16px; cursor: pointer; text-decoration: none;
+      font-size: 16px; font-weight: 600; color: var(--text);
+      background: var(--card); border: 1px solid var(--border);
+      transition: background .2s, border-color .2s, transform .18s;
+    }
+    .btn-ghost:hover {
+      background: rgba(255,255,255,.07); border-color: rgba(255,255,255,.14);
+      transform: translateY(-2px);
+    }
+    .btn-ghost svg { width: 18px; height: 18px; fill: currentColor; }
+
+    .under-cta {
+      font-size: 13px; color: var(--muted); margin-top: -4px;
+    }
+    .under-cta a {
+      color: var(--a1); text-decoration: none; font-weight: 600;
+      transition: color .2s;
+    }
+    .under-cta a:hover { color: var(--a3); }
+
+    /* ─── Stats Strip ─── */
+    .stats {
+      display: flex; flex-wrap: wrap; gap: 0;
+      border: 1px solid var(--border); border-radius: 20px;
+      overflow: hidden; background: var(--card);
+      backdrop-filter: blur(12px);
+    }
+
+    .stat {
+      flex: 1; min-width: 140px;
+      padding: 24px 20px; text-align: center;
+      border-right: 1px solid var(--border);
+    }
+    .stat:last-child { border-right: none; }
+
+    .stat-val {
+      font-size: 32px; font-weight: 900; letter-spacing: -1px;
+      background: linear-gradient(135deg, var(--a3), var(--a1));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+
+    .stat-label { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+    /* ─── Section heading ─── */
+    .section-label {
+      display: inline-block;
+      font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--a1); margin-bottom: 14px;
+    }
+
+    .section-title {
+      font-size: clamp(26px, 4vw, 40px);
+      font-weight: 900; letter-spacing: -1px; line-height: 1.15;
+      margin-bottom: 16px;
+    }
+
+    .section-desc {
+      font-size: 17px; color: var(--muted2); max-width: 520px;
+      line-height: 1.6; margin-bottom: 52px;
+    }
+
+    /* ─── Feature Cards ─── */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 32px 28px;
+      transition: transform .25s cubic-bezier(.34,1.56,.64,1), border-color .2s, box-shadow .2s;
+    }
+
+    .card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(255,170,128,0.25);
+      box-shadow: 0 16px 48px rgba(0,0,0,.4), 0 0 0 1px rgba(255,170,128,0.1);
+    }
+
+    .card-icon {
+      width: 52px; height: 52px; border-radius: 14px; margin-bottom: 20px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .card-icon svg { width: 26px; height: 26px; fill: currentColor; }
+
+    .card-icon.orange { background: rgba(255,127,92,0.15); color: var(--a2); }
+    .card-icon.yellow { background: rgba(255,216,77,0.12); color: var(--a3); }
+    .card-icon.pink   { background: rgba(255,95,160,0.12); color: var(--a4); }
+
+    .card h3 { font-size: 19px; font-weight: 800; margin-bottom: 10px; letter-spacing: -0.3px; }
+
+    .card p { font-size: 15px; color: var(--muted2); line-height: 1.6; }
+
+    .card-num {
+      font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 16px;
+    }
+
+    /* ─── For Whom ─── */
+    .audience { background: rgba(255,255,255,0.02); border-radius: 28px; padding: 52px 48px; }
+
+    .audience-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-top: 36px;
+    }
+
+    .audience-item {
+      display: flex; align-items: flex-start; gap: 14px;
+      padding: 20px; border-radius: 16px;
+      background: var(--card); border: 1px solid var(--border);
+      transition: border-color .2s, transform .2s;
+    }
+
+    .audience-item:hover {
+      border-color: rgba(255,170,128,0.2);
+      transform: translateY(-3px);
+    }
+
+    .audience-icon {
+      font-size: 26px; flex-shrink: 0; line-height: 1;
+      width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(255,216,77,0.1); border-radius: 11px;
+    }
+
+    .audience-item h4 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .audience-item p  { font-size: 13px; color: var(--muted2); line-height: 1.5; }
+
+    /* ─── Benefit bar ─── */
+    .benefits {
+      display: flex; flex-wrap: wrap; gap: 12px;
+      margin-top: 36px;
+    }
+
+    .benefit-tag {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 18px; border-radius: 12px;
+      background: rgba(255,216,77,0.08); border: 1px solid rgba(255,216,77,0.15);
+      font-size: 14px; font-weight: 600; color: var(--text);
+    }
+
+    .benefit-tag svg { width: 16px; height: 16px; fill: var(--a3); flex-shrink: 0; }
+
+    /* ─── CTA Section ─── */
+    .cta-section {
+      text-align: center;
+      padding: 80px 0 100px;
+    }
+
+    .cta-box {
+      background: linear-gradient(135deg, rgba(255,127,92,0.08), rgba(255,216,77,0.05));
+      border: 1px solid rgba(255,170,128,0.15);
+      border-radius: 32px;
+      padding: 64px 40px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-box::before {
+      content: '';
+      position: absolute; top: -60px; left: 50%; transform: translateX(-50%);
+      width: 300px; height: 300px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,216,77,0.12), transparent 70%);
+      pointer-events: none;
+    }
+
+    .cta-box h2 {
+      font-size: clamp(26px, 4vw, 42px);
+      font-weight: 900; letter-spacing: -1px; margin-bottom: 16px;
+    }
+
+    .cta-box p {
+      font-size: 17px; color: var(--muted2); margin-bottom: 36px; max-width: 440px; margin-left: auto; margin-right: auto;
+    }
+
+    .cta-tg {
+      display: block; margin-top: 18px;
+      font-size: 14px; color: var(--muted);
+      text-decoration: none;
+      transition: color .2s;
+    }
+
+    .cta-tg:hover { color: var(--a1); }
+
+    /* ─── Footer ─── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 28px 0;
+      text-align: center;
+      font-size: 13px; color: var(--muted);
+    }
+
+    footer a { color: var(--a1); text-decoration: none; }
+    footer a:hover { color: var(--a3); }
+
+    /* ─── Divider ─── */
+    .hr {
+      height: 1px; margin: 0;
+      background: linear-gradient(90deg, transparent, var(--border) 20%, rgba(255,170,128,0.12) 50%, var(--border) 80%, transparent);
+    }
+
+    /* ─── Mobile ─── */
+    @media (max-width: 600px) {
+      section { padding: 56px 0; }
+      .hero { padding: 64px 0 56px; }
+      .audience { padding: 32px 24px; }
+      .cta-box { padding: 40px 24px; }
+      .stat { padding: 18px 12px; }
+      .stat-val { font-size: 26px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg-grad"></div>
+
+<!-- ═══ NAV ═══ -->
+<nav>
+  <div class="nav-inner">
+    <a class="nav-logo" href="#">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="3" y="4" width="18" height="18" rx="4" stroke="url(#lg1)" stroke-width="2"/>
+        <path d="M8 12l3 3 5-5" stroke="url(#lg2)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <defs>
+          <linearGradient id="lg1" x1="3" y1="4" x2="21" y2="22" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#ffd84d"/><stop offset="1" stop-color="#ff7f5c"/>
+          </linearGradient>
+          <linearGradient id="lg2" x1="8" y1="12" x2="16" y2="18" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#ffd84d"/><stop offset="1" stop-color="#ff7f5c"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      Трекер привычек
+    </a>
+    <a class="nav-cta" href="#cta">Начать бесплатно</a>
+  </div>
+</nav>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+  <div class="wrap">
+
+    <div class="hero-badge">
+      <span class="hero-badge-dot"></span>
+      Новый подход к саморазвитию
+    </div>
+
+    <h1>
+      Привычки,<br>
+      которые <span class="grad-text">меняют</span><br>
+      всё вокруг
+    </h1>
+
+    <p class="hero-sub">
+      Простой трекер, который превращает <strong>маленькие ежедневные действия</strong>
+      в мощные изменения — через науку о привычках и умную аналитику.
+    </p>
+
+    <div class="hero-actions">
+      <a class="btn-primary" href="#cta">
+        <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        Попробовать бесплатно
+      </a>
+      <a class="btn-ghost" href="#features">
+        <svg viewBox="0 0 24 24"><path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 100-16 8 8 0 000 16zm-1-5h2v2h-2v-2zm0-8h2v6h-2V7z"/></svg>
+        Как это работает
+      </a>
+    </div>
+
+    <div class="under-cta">
+      Вопросы? Пиши <a href="https://t.me/alexshan72" target="_blank" rel="noopener">@alexshan72</a>
+    </div>
+
+    <br /><br />
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-val">21+</div>
+        <div class="stat-label">дней до привычки</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val">3×</div>
+        <div class="stat-label">выше продуктивность</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val">94%</div>
+        <div class="stat-label">пользователей не бросили</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val">∞</div>
+        <div class="stat-label">привычек без лимита</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="hr"></div>
+
+<!-- ═══ FEATURES ═══ -->
+<section id="features">
+  <div class="wrap">
+    <div class="section-label">Преимущества</div>
+    <h2 class="section-title">Три причины выбрать нас</h2>
+    <p class="section-desc">Никакой лишней сложности — только то, что реально помогает строить новую версию себя.</p>
+
+    <div class="cards">
+
+      <!-- Card 1 -->
+      <div class="card">
+        <div class="card-num">01</div>
+        <div class="card-icon orange">
+          <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 110 20A10 10 0 0112 2zm0 2a8 8 0 100 16A8 8 0 0012 4zm1 4v4.414l2.293 2.293-1.414 1.414L11 13.586V8h2z"/></svg>
+        </div>
+        <h3>30 секунд в день</h3>
+        <p>Отметил — пошёл дальше. Минималистичный интерфейс без лишнего шума: одно нажатие и твой прогресс зафиксирован. Никаких форм, таймеров и раздражающих анкет.</p>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="card">
+        <div class="card-num">02</div>
+        <div class="card-icon yellow">
+          <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+        </div>
+        <h3>Умная аналитика</h3>
+        <p>Графики серий, тепловые карты и еженедельные инсайты показывают, когда ты продуктивнее и какие привычки реально приживаются, а какие — нет.</p>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="card">
+        <div class="card-num">03</div>
+        <div class="card-icon pink">
+          <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        </div>
+        <h3>Мотивация не заканчивается</h3>
+        <p>Серии дней, достижения и мягкие напоминания удерживают тебя на курсе. Ты не просто ведёшь список — ты строишь личный рекорд, который не хочется прерывать.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="hr"></div>
+
+<!-- ═══ FOR WHOM ═══ -->
+<section id="audience">
+  <div class="wrap">
+    <div class="audience">
+      <div class="section-label">Для кого</div>
+      <h2 class="section-title">Это подойдёт тебе, если…</h2>
+
+      <div class="audience-grid">
+        <div class="audience-item">
+          <div class="audience-icon">🎯</div>
+          <div>
+            <h4>Хочешь изменений</h4>
+            <p>Начинал много раз и бросал? Трекер делает процесс видимым — это ключ к тому, чтобы не слиться.</p>
+          </div>
+        </div>
+        <div class="audience-item">
+          <div class="audience-icon">💼</div>
+          <div>
+            <h4>Занятой человек</h4>
+            <p>Нет времени на сложные системы. 30 секунд утром — и ты уже работаешь над лучшей версией себя.</p>
+          </div>
+        </div>
+        <div class="audience-item">
+          <div class="audience-icon">🏃</div>
+          <div>
+            <h4>Работаешь над собой</h4>
+            <p>Спорт, чтение, медитация, вода — отслеживай всё в одном месте и наблюдай, как жизнь меняется.</p>
+          </div>
+        </div>
+        <div class="audience-item">
+          <div class="audience-icon">📈</div>
+          <div>
+            <h4>Любишь данные</h4>
+            <p>Графики и статистика покажут реальную картину прогресса, а не ощущение «вроде стараюсь».</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="benefits">
+        <div class="benefit-tag">
+          <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+          Бесплатно навсегда
+        </div>
+        <div class="benefit-tag">
+          <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+          Без регистрации
+        </div>
+        <div class="benefit-tag">
+          <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+          Работает офлайн
+        </div>
+        <div class="benefit-tag">
+          <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+          Данные только у тебя
+        </div>
+        <div class="benefit-tag">
+          <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+          Мобильная версия
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="hr"></div>
+
+<!-- ═══ CTA ═══ -->
+<section class="cta-section" id="cta">
+  <div class="wrap">
+    <div class="cta-box">
+      <h2>Начни <span class="grad-text">сегодня</span> —<br>не в понедельник</h2>
+      <p>Первый шаг занимает 30 секунд. Результаты — на всю жизнь.</p>
+
+      <a class="btn-primary" href="https://t.me/alexshan72" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248-1.97 9.289c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L6.288 14.064l-2.95-.924c-.642-.2-.654-.642.135-.953l11.57-4.461c.537-.194 1.006.131.519.522z"/></svg>
+        Написать и начать
+      </a>
+
+      <a class="cta-tg" href="https://t.me/alexshan72" target="_blank" rel="noopener">
+        Telegram · @alexshan72
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FOOTER ═══ -->
+<footer>
+  <div class="wrap">
+    © 2026 Трекер привычек · Сделано с вайбом by <a href="https://t.me/alexshan72" target="_blank" rel="noopener">@alexshan72</a>
+  </div>
+</footer>
+
+</body>
+</html>

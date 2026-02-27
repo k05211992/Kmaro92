@@ -6,6 +6,7 @@ on:
     paths:
       - habit-tracker/**
       - vizitka.html
+      - landing.html
   workflow_dispatch:
 
 permissions:
@@ -39,8 +40,10 @@ jobs:
         env:
           VITE_BASE: /Kmaro92/
 
-      - name: Copy vizitka.html to dist
-        run: cp vizitka.html habit-tracker/dist/vizitka.html
+      - name: Copy static pages to dist
+        run: |
+          cp vizitka.html habit-tracker/dist/vizitka.html
+          cp landing.html habit-tracker/dist/landing.html
 
       - uses: actions/upload-pages-artifact@v3
         with:

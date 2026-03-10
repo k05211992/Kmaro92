@@ -1,0 +1,15 @@
+# dependencies
+node_modules/
+package-lock.json
+
+# next.js
+.next/
+out/
+
+# production build
+build/
+
+# misc
+.DS_Store
+*.pem
+.env*.local

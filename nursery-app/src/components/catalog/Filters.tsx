@@ -12,12 +12,11 @@ import {
   HEIGHT_LABELS,
   STOCK_LABELS,
 } from "@/types";
-import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { SlidersHorizontal, X } from "lucide-react";
+import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// ---- Generic multi-checkbox group ----
+// ---- Generic chip group ----
 interface CheckGroupProps<T extends string> {
   label: string;
   options: { value: T; label: string }[];
@@ -41,7 +40,7 @@ function CheckGroup<T extends string>({
 
   return (
     <div>
-      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+      <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-2">
         {label}
       </p>
       <div className="flex flex-wrap gap-1.5">
@@ -52,10 +51,10 @@ function CheckGroup<T extends string>({
               key={opt.value}
               onClick={() => toggle(opt.value)}
               className={cn(
-                "px-2.5 py-1 rounded-full text-xs border transition-colors",
+                "px-2.5 py-1 rounded-lg text-xs border transition-all",
                 active
-                  ? "bg-brand-600 text-white border-brand-600"
-                  : "bg-white text-gray-600 border-gray-200 hover:border-brand-400"
+                  ? "bg-brand-600 text-white border-brand-600 shadow-sm"
+                  : "bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50"
               )}
             >
               {opt.label}
@@ -67,16 +66,13 @@ function CheckGroup<T extends string>({
   );
 }
 
-// ---- Category filter (single-select style) ----
+// ---- Category filter ----
 function CategoryFilter() {
   const { filters, updateFilter, categories } = useCatalog();
 
   const toggle = (cat: string) => {
     if (filters.categories.includes(cat)) {
-      updateFilter(
-        "categories",
-        filters.categories.filter((c) => c !== cat)
-      );
+      updateFilter("categories", filters.categories.filter((c) => c !== cat));
     } else {
       updateFilter("categories", [...filters.categories, cat]);
     }
@@ -86,10 +82,10 @@ function CategoryFilter() {
 
   return (
     <div>
-      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+      <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-2">
         Категория
       </p>
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-0.5">
         {categories.map((cat) => {
           const active = filters.categories.includes(cat);
           return (
@@ -97,7 +93,7 @@ function CategoryFilter() {
               key={cat}
               onClick={() => toggle(cat)}
               className={cn(
-                "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-left transition-colors",
+                "flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-sm text-left transition-colors",
                 active
                   ? "bg-brand-50 text-brand-700 font-medium"
                   : "text-gray-600 hover:bg-gray-50"
@@ -105,7 +101,7 @@ function CategoryFilter() {
             >
               <span
                 className={cn(
-                  "w-2 h-2 rounded-full flex-shrink-0",
+                  "w-1.5 h-1.5 rounded-full flex-shrink-0",
                   active ? "bg-brand-600" : "bg-gray-300"
                 )}
               />
@@ -118,13 +114,13 @@ function CategoryFilter() {
   );
 }
 
-// ---- Price range filter ----
+// ---- Price range ----
 function PriceRangeFilter() {
   const { filters, updateFilter } = useCatalog();
 
   return (
     <div>
-      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+      <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-2">
         Цена, руб.
       </p>
       <div className="flex items-center gap-2">
@@ -136,7 +132,7 @@ function PriceRangeFilter() {
           className="text-sm py-1.5"
           min={0}
         />
-        <span className="text-gray-400 flex-shrink-0">—</span>
+        <span className="text-gray-300 flex-shrink-0">—</span>
         <Input
           type="number"
           placeholder="До"
@@ -150,7 +146,6 @@ function PriceRangeFilter() {
   );
 }
 
-// ---- Active filter count ----
 function countActiveFilters(f: ReturnType<typeof useCatalog>["filters"]): number {
   let n = 0;
   if (f.categories.length) n++;
@@ -162,26 +157,20 @@ function countActiveFilters(f: ReturnType<typeof useCatalog>["filters"]): number
   return n;
 }
 
-// ---- Main Filters component ----
+// ---- Main Filters ----
 export function Filters({ className }: { className?: string }) {
   const { filters, updateFilter, resetFilters, filteredPlants } = useCatalog();
   const { plants } = useApp();
   const activeCount = countActiveFilters(filters);
 
   return (
-    <aside
-      className={cn(
-        "flex flex-col gap-5 bg-white rounded-xl border border-gray-100 p-4",
-        className
-      )}
-    >
+    <aside className={cn("flex flex-col gap-5", className)}>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <SlidersHorizontal size={16} className="text-gray-500" />
           <span className="font-semibold text-gray-800 text-sm">Фильтры</span>
           {activeCount > 0 && (
-            <span className="bg-brand-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
+            <span className="bg-brand-600 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
               {activeCount}
             </span>
           )}
@@ -189,28 +178,25 @@ export function Filters({ className }: { className?: string }) {
         {activeCount > 0 && (
           <button
             onClick={resetFilters}
-            className="text-xs text-gray-400 hover:text-brand-600 flex items-center gap-1 transition-colors"
+            className="text-xs text-gray-400 hover:text-gray-700 flex items-center gap-1 transition-colors"
           >
-            <X size={12} />
+            <X size={11} />
             Сбросить
           </button>
         )}
       </div>
 
       {/* Results count */}
-      <p className="text-xs text-gray-400">
-        Найдено:{" "}
-        <span className="font-medium text-gray-700">{filteredPlants.length}</span>{" "}
-        из {plants.length}
+      <p className="text-xs text-gray-400 -mt-2">
+        {filteredPlants.length} из {plants.length} позиций
       </p>
 
-      {/* Divider */}
       <div className="h-px bg-gray-100" />
 
-      {/* Category */}
       <CategoryFilter />
 
-      {/* Light */}
+      <div className="h-px bg-gray-100" />
+
       <CheckGroup<LightCondition>
         label="Освещение"
         options={[
@@ -222,7 +208,6 @@ export function Filters({ className }: { className?: string }) {
         onChange={(v) => updateFilter("light", v)}
       />
 
-      {/* Moisture */}
       <CheckGroup<MoistureCondition>
         label="Влажность"
         options={[
@@ -234,7 +219,6 @@ export function Filters({ className }: { className?: string }) {
         onChange={(v) => updateFilter("moisture", v)}
       />
 
-      {/* Height */}
       <CheckGroup<HeightGroup>
         label="Высота"
         options={[
@@ -247,7 +231,8 @@ export function Filters({ className }: { className?: string }) {
         onChange={(v) => updateFilter("height_group", v)}
       />
 
-      {/* Stock status */}
+      <div className="h-px bg-gray-100" />
+
       <CheckGroup<StockStatus>
         label="Наличие"
         options={[
@@ -260,7 +245,6 @@ export function Filters({ className }: { className?: string }) {
         onChange={(v) => updateFilter("stock_status", v)}
       />
 
-      {/* Price */}
       <PriceRangeFilter />
     </aside>
   );

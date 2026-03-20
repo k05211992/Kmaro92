@@ -1,0 +1,17 @@
+[
+  { "title": "Плодородный грунт",      "unit": "м³",    "defaultPrice": 2500 },
+  { "title": "Песок строительный",     "unit": "м³",    "defaultPrice": 800  },
+  { "title": "Щебень фракция 20-40",   "unit": "м³",    "defaultPrice": 1200 },
+  { "title": "Геотекстиль",            "unit": "м²",    "defaultPrice": 45   },
+  { "title": "Дренажная труба Ø110",   "unit": "пог.м", "defaultPrice": 180  },
+  { "title": "Бордюрный камень",       "unit": "шт",    "defaultPrice": 220  },
+  { "title": "Тротуарная плитка",      "unit": "м²",    "defaultPrice": 650  },
+  { "title": "Рулонный газон",         "unit": "м²",    "defaultPrice": 180  },
+  { "title": "Семена газонные",        "unit": "кг",    "defaultPrice": 380  },
+  { "title": "Торф",                   "unit": "м³",    "defaultPrice": 1800 },
+  { "title": "Удобрение комплексное",  "unit": "кг",    "defaultPrice": 120  },
+  { "title": "Трубы ПНД Ø32",         "unit": "пог.м", "defaultPrice": 85   },
+  { "title": "Спринклеры роторные",    "unit": "шт",    "defaultPrice": 1200 },
+  { "title": "Светильник грунтовый",   "unit": "шт",    "defaultPrice": 2800 },
+  { "title": "Кабель ВВГ 2×1,5",      "unit": "пог.м", "defaultPrice": 65   }
+]

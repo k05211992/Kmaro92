@@ -1,0 +1,73 @@
+[
+  {
+    "id": "lawn",
+    "label": "Газон",
+    "unit": "м²",
+    "variants": [
+      { "id": "roll", "label": "Рулонный газон", "unitPrice": 450 },
+      { "id": "seed", "label": "Посевной газон", "unitPrice": 180 },
+      { "id": "sport", "label": "Спортивный газон", "unitPrice": 650 }
+    ]
+  },
+  {
+    "id": "paving",
+    "label": "Мощение",
+    "unit": "м²",
+    "variants": [
+      { "id": "tile", "label": "Тротуарная плитка", "unitPrice": 900 },
+      { "id": "natural", "label": "Натуральный камень", "unitPrice": 2200 },
+      { "id": "gravel", "label": "Гравийное покрытие", "unitPrice": 350 }
+    ]
+  },
+  {
+    "id": "curb",
+    "label": "Бордюры",
+    "unit": "пог.м",
+    "variants": [
+      { "id": "concrete", "label": "Бетонный бордюр", "unitPrice": 380 },
+      { "id": "metal", "label": "Металлический бордюр", "unitPrice": 520 },
+      { "id": "plastic", "label": "Пластиковый бордюр", "unitPrice": 180 }
+    ]
+  },
+  {
+    "id": "drainage",
+    "label": "Дренаж",
+    "unit": "пог.м",
+    "variants": [
+      { "id": "surface", "label": "Поверхностный дренаж", "unitPrice": 750 },
+      { "id": "deep", "label": "Глубокий дренаж", "unitPrice": 1400 }
+    ]
+  },
+  {
+    "id": "planting",
+    "label": "Посадка растений",
+    "unit": "шт",
+    "variants": [
+      { "id": "shrub", "label": "Кустарники", "unitPrice": 800 },
+      { "id": "tree_small", "label": "Деревья (до 2м)", "unitPrice": 2500 },
+      { "id": "tree_large", "label": "Деревья (от 2м)", "unitPrice": 6000 },
+      { "id": "perennial", "label": "Многолетники", "unitPrice": 350 },
+      { "id": "annual", "label": "Однолетники", "unitPrice": 120 }
+    ]
+  },
+  {
+    "id": "irrigation",
+    "label": "Полив",
+    "unit": "зон",
+    "variants": [
+      { "id": "zone_basic", "label": "Зона базовая", "unitPrice": 18000 },
+      { "id": "zone_premium", "label": "Зона премиум", "unitPrice": 32000 },
+      { "id": "drip", "label": "Капельный полив (пакет)", "unitPrice": 45000 }
+    ]
+  },
+  {
+    "id": "lighting",
+    "label": "Освещение",
+    "unit": "точек",
+    "variants": [
+      { "id": "path", "label": "Дорожки и бордюры", "unitPrice": 3500 },
+      { "id": "spot", "label": "Споты (подсветка)", "unitPrice": 5500 },
+      { "id": "facade", "label": "Фасадное освещение", "unitPrice": 8000 }
+    ]
+  }
+]

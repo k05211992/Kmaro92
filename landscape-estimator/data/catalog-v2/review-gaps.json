@@ -1,0 +1,172 @@
+[
+  {
+    "sourceRowId": "SRC-0001",
+    "rawName": "Авторское сопровождение",
+    "sourceFile": "%",
+    "recommendedSection": "Сопровождение проекта / услуги",
+    "positionType": "Услуга",
+    "mappingConfidence": "Высокая",
+    "whyReview": "процент/коммерческая логика",
+    "comment": "Это продаваемая услуга, можно показывать отдельной строкой"
+  },
+  {
+    "sourceRowId": "SRC-0006",
+    "rawName": "Аренда вагончика",
+    "sourceFile": "%",
+    "recommendedSection": "Временные сооружения и обеспечение",
+    "positionType": "Логистика",
+    "mappingConfidence": "Высокая",
+    "whyReview": "процент/коммерческая логика",
+    "comment": "Для клиентского КП лучше сворачивать в раздел \"Организация стройплощадки\""
+  },
+  {
+    "sourceRowId": "SRC-0010",
+    "rawName": "Аренда обслуживание (2 раза в месяц) туалетной кабины",
+    "sourceFile": "%",
+    "recommendedSection": "Временные сооружения и обеспечение",
+    "positionType": "Логистика",
+    "mappingConfidence": "Высокая",
+    "whyReview": "процент/коммерческая логика",
+    "comment": "Для клиентского КП лучше сворачивать в раздел \"Организация стройплощадки\""
+  },
+  {
+    "sourceRowId": "SRC-0034",
+    "rawName": "Временные бытовые условия (+ спецодежда, связь, ТО туал.кабины)",
+    "sourceFile": "%",
+    "recommendedSection": "Временные сооружения и обеспечение",
+    "positionType": "Накладные",
+    "mappingConfidence": "Высокая",
+    "whyReview": "накладная строка; процент/коммерческая логика",
+    "comment": "Лучше включать коэффициентом или свернутым разделом"
+  },
+  {
+    "sourceRowId": "SRC-0039",
+    "rawName": "Выезд электрика для подключения в вагончике",
+    "sourceFile": "%",
+    "recommendedSection": "Временные сооружения и обеспечение",
+    "positionType": "Логистика",
+    "mappingConfidence": "Высокая",
+    "whyReview": "процент/коммерческая логика",
+    "comment": "Для клиентского КП лучше сворачивать в раздел \"Организация стройплощадки\""
+  },
+  {
+    "sourceRowId": "SRC-0044",
+    "rawName": "Выкопка елей 1-1,5м",
+    "sourceFile": "работа",
+    "recommendedSection": "Посадки и уход",
+    "positionType": "Работа",
+    "mappingConfidence": "Средняя",
+    "whyReview": "средняя уверенность",
+    "comment": "Лучше держать вместе с работами по растениям"
+  },
+  {
+    "sourceRowId": "SRC-0045",
+    "rawName": "Выкопка шиповника",
+    "sourceFile": "работа",
+    "recommendedSection": "Демонтаж и расчистка",
+    "positionType": "Работа",
+    "mappingConfidence": "Средняя",
+    "whyReview": "средняя уверенность",
+    "comment": "Можно перенести в \"Посадки и уход\", если в КП это уход за участком"
+  },
+  {
+    "sourceRowId": "SRC-0060",
+    "rawName": "Грунт плодородный",
+    "sourceFile": "материалы",
+    "recommendedSection": "Земляные и планировочные работы",
+    "positionType": "Материал",
+    "mappingConfidence": "Средняя",
+    "whyReview": "средняя уверенность",
+    "comment": "Нормализовано под генератор КП"
+  },
+  {
+    "sourceRowId": "SRC-0070",
+    "rawName": "Дождеприемник пластик. 300х300х300 мм в сборе с решеткой чугунной",
+    "sourceFile": "материалы",
+    "recommendedSection": "Мощение",
+    "positionType": "Материал",
+    "mappingConfidence": "Средняя",
+    "whyReview": "средняя уверенность",
+    "comment": "В текущем прайсе позиция сидит в мощении; для генератора можно оставить, если это локальный узел в зоне мощения"
+  },
+  {
+    "sourceRowId": "SRC-0078",
+    "rawName": "Доставка/вывоз туалетной кабины",
+    "sourceFile": "%",
+    "recommendedSection": "Временные сооружения и обеспечение",
+    "positionType": "Логистика",
+    "mappingConfidence": "Высокая",
+    "whyReview": "процент/коммерческая логика",
+    "comment": "Для клиентского КП лучше сворачивать в раздел \"Организация стройплощадки\""
+  },
+  {
+    "sourceRowId": "SRC-0079",
+    "rawName": "Доставки материалов и оборудования, погрузочно-разгрузочные работы",
+    "sourceFile": "%",
+    "recommendedSection": "Логистика и снабжение",
+    "positionType": "Логистика",
+    "mappingConfidence": "Высокая",
+    "whyReview": "процент/коммерческая логика",
+    "comment": "Для генератора лучше сворачивать в логистический блок"
+  },
+  {
+    "sourceRowId": "SRC-0081",
+    "rawName": "Завоз-вывоз вагончика",
+    "sourceFile": "%",
+    "recommendedSection": "Временные сооружения и обеспечение",
+    "positionType": "Логистика",
+    "mappingConfidence": "Высокая",
+    "whyReview": "процент/коммерческая логика",
+    "comment": "Для клиентского КП лучше сворачивать в раздел \"Организация стройплощадки\""
+  },
+  {
+    "sourceRowId": "SRC-0109",
+    "rawName": "Материалы для разметки",
+    "sourceFile": "материалы",
+    "recommendedSection": "Земляные и планировочные работы",
+    "positionType": "Материал",
+    "mappingConfidence": "Средняя",
+    "whyReview": "средняя уверенность",
+    "comment": "Нормализовано под генератор КП"
+  },
+  {
+    "sourceRowId": "SRC-0148",
+    "rawName": "Накладные расходы (расходные материалы, комплектация заказов, зарплата АУП и пр.)",
+    "sourceFile": "%",
+    "recommendedSection": "Накладные / коэффициенты",
+    "positionType": "Накладные",
+    "mappingConfidence": "Высокая",
+    "whyReview": "накладная строка; процент/коммерческая логика",
+    "comment": "Для клиентской версии КП не выводить отдельной строкой"
+  },
+  {
+    "sourceRowId": "SRC-0188",
+    "rawName": "Расходные материалы",
+    "sourceFile": "материалы",
+    "recommendedSection": "Дренаж",
+    "positionType": "Материал",
+    "mappingConfidence": "Средняя",
+    "whyReview": "средняя уверенность",
+    "comment": "Расходники лучше не показывать клиенту отдельной строкой"
+  },
+  {
+    "sourceRowId": "SRC-0205",
+    "rawName": "Торф нейтрализованный, 300л",
+    "sourceFile": "материалы",
+    "recommendedSection": "Земляные и планировочные работы",
+    "positionType": "Материал",
+    "mappingConfidence": "Средняя",
+    "whyReview": "средняя уверенность",
+    "comment": "Нормализовано под генератор КП"
+  },
+  {
+    "sourceRowId": "SRC-0207",
+    "rawName": "Транспортные расходы",
+    "sourceFile": "%",
+    "recommendedSection": "Логистика и снабжение",
+    "positionType": "Накладные",
+    "mappingConfidence": "Высокая",
+    "whyReview": "накладная строка; процент/коммерческая логика",
+    "comment": "Лучше прятать в коэффициент или логистический пакет"
+  }
+]

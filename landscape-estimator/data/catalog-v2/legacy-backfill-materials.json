@@ -1,0 +1,59 @@
+[
+  {
+    "_meta_note": "Legacy-backfill материалы: позиции из v1, для которых нет приемлемого аналога в catalog-v2. Цены взяты из src/config/materials.json.",
+    "id": "LEGACY-MAT-0001",
+    "legacyTitle": "Бордюрный камень",
+    "family": "бордюрный камень",
+    "canonicalName": "Бордюрный камень",
+    "commercialBaseName": "Бордюрный камень",
+    "section": "Мощение",
+    "baseUnit": "шт",
+    "defaultVariantPrice": 220,
+    "isActive": true,
+    "source": "legacy-backfill",
+    "isLegacyCompatible": true,
+    "note": "Из v1 materials.json: «Бордюрный камень» 220 ₽/шт. В v2 есть бордюры металлический (RMAT-0008, 0 ₽ — нет цены) и пластиковые (RMAT-0009/0010), но не бетонный бордюрный камень."
+  },
+  {
+    "id": "LEGACY-MAT-0002",
+    "legacyTitle": "Семена газонные",
+    "family": "семена газонные",
+    "canonicalName": "Семена газонные",
+    "commercialBaseName": "Семена газонные",
+    "section": "Газон",
+    "baseUnit": "кг",
+    "defaultVariantPrice": 380,
+    "isActive": true,
+    "source": "legacy-backfill",
+    "isLegacyCompatible": true,
+    "note": "Из v1: «Семена газонные» 380 ₽/кг. В v2 есть рулонный газон (RMAT-0022/0023/0024) и газонное удобрение (RMAT-0108), но не семена."
+  },
+  {
+    "id": "LEGACY-MAT-0003",
+    "legacyTitle": "Трубы ПНД Ø32",
+    "family": "трубы пнд ø32",
+    "canonicalName": "Труба ПНД Ø32",
+    "commercialBaseName": "Трубы ПНД Ø32",
+    "section": "Полив",
+    "baseUnit": "пог.м",
+    "defaultVariantPrice": 85,
+    "isActive": true,
+    "source": "legacy-backfill",
+    "isLegacyCompatible": true,
+    "note": "Из v1: «Трубы ПНД Ø32» 85 ₽/пог.м. В v2 есть только канализационные/дренажные трубы d=110мм (RMAT-0102–0105), малый диаметр ПНД отсутствует."
+  },
+  {
+    "id": "LEGACY-MAT-0004",
+    "legacyTitle": "Спринклеры роторные",
+    "family": "спринклеры роторные",
+    "canonicalName": "Спринклеры роторные",
+    "commercialBaseName": "Спринклеры роторные",
+    "section": "Полив",
+    "baseUnit": "шт",
+    "defaultVariantPrice": 1200,
+    "isActive": true,
+    "source": "legacy-backfill",
+    "isLegacyCompatible": true,
+    "note": "Из v1: «Спринклеры роторные» 1 200 ₽/шт. В catalog-v2 нет никаких позиций системы полива, кроме работ (консервация RWORK-0040)."
+  }
+]

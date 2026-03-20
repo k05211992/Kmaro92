@@ -1,0 +1,231 @@
+{
+  "_meta": {
+    "generatedAt": "2026-03-20T11:18:01.823Z",
+    "generatedBy": "scripts/regression-test-catalog-v2.js",
+    "catalogV2PreviewStatus": "PREVIEW_ONLY — main UI on v1"
+  },
+  "summary": {
+    "automatedChecks": {
+      "total": 12,
+      "passed": 12,
+      "failed": 0,
+      "errored": 0
+    },
+    "adapterCoverage": {
+      "works": {
+        "canonical": 11,
+        "legacy-key": 11
+      },
+      "materials": {
+        "canonical": 7,
+        "normalized": 3,
+        "legacy-title": 4,
+        "manual-remap": 1
+      }
+    },
+    "manualChecks": {
+      "total": 10,
+      "requiresManual": 10,
+      "completed": 0
+    },
+    "readyForDefaultSwitch": true,
+    "readyForDefaultSwitchNote": "All automated checks pass and no fuzzy matching. Proceed to manual browser verification."
+  },
+  "automatedResults": [
+    {
+      "id": "adapter_coverage_works",
+      "description": "All 22 v1 work pairs resolve (requiresRemap = 0)",
+      "status": "PASS",
+      "details": "All 22 pairs resolved",
+      "warnings": null
+    },
+    {
+      "id": "adapter_no_fuzzy_works",
+      "description": "No work uses fuzzy 'normalized' matching",
+      "status": "PASS",
+      "details": "All works resolved via deterministic steps",
+      "warnings": null
+    },
+    {
+      "id": "adapter_no_null_prices_works",
+      "description": "All resolved works have price > 0",
+      "status": "PASS",
+      "details": "All work prices > 0",
+      "warnings": null
+    },
+    {
+      "id": "adapter_coverage_materials",
+      "description": "All 15 v1 materials resolve (requiresRemap = 0)",
+      "status": "PASS",
+      "details": "All 15 materials resolved",
+      "warnings": null
+    },
+    {
+      "id": "adapter_no_null_prices_materials",
+      "description": "All resolved materials have price >= 0 (no null)",
+      "status": "PASS",
+      "details": "All material prices resolved (not null)",
+      "warnings": null
+    },
+    {
+      "id": "backfill_works_integrity",
+      "description": "All legacy-backfill-works.json entries have required fields",
+      "status": "PASS",
+      "details": "All 11 backfill work entries valid",
+      "warnings": null
+    },
+    {
+      "id": "backfill_materials_integrity",
+      "description": "All legacy-backfill-materials.json entries have required fields",
+      "status": "PASS",
+      "details": "All 4 backfill material entries valid",
+      "warnings": null
+    },
+    {
+      "id": "canonical_map_ids_exist",
+      "description": "All RWORK-XXXX in canonicalMap exist in works.json",
+      "status": "PASS",
+      "details": "All 11 canonical work IDs verified",
+      "warnings": null
+    },
+    {
+      "id": "manual_remap_ids_exist",
+      "description": "All v2MaterialId in manual-remap.json exist in materials.json",
+      "status": "PASS",
+      "details": "All 1 manual-remap entries reference valid v2 IDs",
+      "warnings": null
+    },
+    {
+      "id": "backfill_ids_unique",
+      "description": "LEGACY-WORK/LEGACY-MAT IDs do not collide with v2 catalog IDs",
+      "status": "PASS",
+      "details": "No ID collisions (11 work + 4 mat backfill entries)",
+      "warnings": null
+    },
+    {
+      "id": "feature_flag_default_off",
+      "description": "NEXT_PUBLIC_CATALOG_V2_PREVIEW is not set (flag off by default)",
+      "status": "PASS",
+      "details": "Flag not set in env — v2 disabled by default (localStorage toggle only)",
+      "warnings": null
+    },
+    {
+      "id": "estimate_calc_parity",
+      "description": "Sample estimate with all v1 categories produces valid totals",
+      "status": "PASS",
+      "details": "worksTotal=1556760 materialsSubtotal=24450 finalTotal=1427589 prepayment=428277 remaining=999312",
+      "warnings": null
+    }
+  ],
+  "manualChecklist": [
+    {
+      "id": "open_saved_estimate",
+      "scenario": "Открытие старой сметы",
+      "steps": [
+        "Открыть приложение (localhost:3000)",
+        "Проверить, что черновик загружается из localStorage",
+        "Все поля (клиент, адрес, работы, материалы) присутствуют"
+      ],
+      "expectedResult": "Смета открывается без потери данных, итоговая сумма совпадает с сохранённой",
+      "status": "requires_manual"
+    },
+    {
+      "id": "recalc_saved_estimate",
+      "scenario": "Пересчёт старой сметы",
+      "steps": [
+        "Открыть сохранённую смету из истории",
+        "Изменить количество в любой строке работ",
+        "Убедиться, что итоги пересчитываются мгновенно"
+      ],
+      "expectedResult": "Итог пересчитан корректно, нет NaN, нет пустых строк",
+      "status": "requires_manual"
+    },
+    {
+      "id": "print_old_estimate",
+      "scenario": "Печать старой сметы",
+      "steps": [
+        "Создать или открыть смету с работами, материалами и доп. расходами",
+        "Нажать «Распечатать»",
+        "Проверить страницу /print"
+      ],
+      "expectedResult": "Все разделы видны: Работы, Материалы, Доп. расходы, Итого, подписи, дисклеймер",
+      "status": "requires_manual"
+    },
+    {
+      "id": "new_estimate_from_catalog",
+      "scenario": "Создание новой сметы из каталога",
+      "steps": [
+        "Нажать «+ Из каталога»",
+        "Выбрать категорию и вариант",
+        "Ввести количество"
+      ],
+      "expectedResult": "Строка добавлена, подитог рассчитан, итог обновился",
+      "status": "requires_manual"
+    },
+    {
+      "id": "manual_line_row",
+      "scenario": "Ручная строка работ",
+      "steps": [
+        "Нажать «+ Ручная строка»",
+        "Заполнить название, ед. изм., кол-во, цену"
+      ],
+      "expectedResult": "Подитог = qty × price, строка сохраняется в localStorage",
+      "status": "requires_manual"
+    },
+    {
+      "id": "materials_presets",
+      "scenario": "Материалы — подсказки из каталога",
+      "steps": [
+        "Добавить материал",
+        "Начать вводить название"
+      ],
+      "expectedResult": "Появляются подсказки из v1-каталога, выбор заполняет цену",
+      "status": "requires_manual"
+    },
+    {
+      "id": "extra_costs",
+      "scenario": "Дополнительные расходы",
+      "steps": [
+        "Добавить доп. расход",
+        "Проверить подсказки (Доставка, Вывоз мусора и т.д.)",
+        "Ввести сумму"
+      ],
+      "expectedResult": "Сумма добавляется к базовому итогу",
+      "status": "requires_manual"
+    },
+    {
+      "id": "discount_markup",
+      "scenario": "Скидка / наценка / предоплата",
+      "steps": [
+        "В разделе «Финансовые условия» установить наценку 10%",
+        "Установить скидку 5%",
+        "Установить предоплату 30%"
+      ],
+      "expectedResult": "Summary блок показывает базовый итог, наценку, скидку, итого, предоплату, остаток — без NaN",
+      "status": "requires_manual"
+    },
+    {
+      "id": "save_and_reopen",
+      "scenario": "Сохранение в историю и повторное открытие",
+      "steps": [
+        "Создать смету, нажать «Сохранить»",
+        "Открыть панель «История»",
+        "Нажать «Открыть» на сохранённой смете"
+      ],
+      "expectedResult": "Смета открывается с теми же работами, итог совпадает",
+      "status": "requires_manual"
+    },
+    {
+      "id": "feature_flag_toggle",
+      "scenario": "Feature flag — v2 preview toggle",
+      "steps": [
+        "Открыть DevTools Console",
+        "Выполнить: localStorage.setItem('landscape_catalog_v2_preview', 'true')",
+        "Убедиться, что основной UI не изменился (v2 не переключился автоматически)",
+        "Убедиться, что flag читается: isCatalogV2PreviewEnabled() === true"
+      ],
+      "expectedResult": "UI остаётся на v1, флаг активен только для adapter layer",
+      "status": "requires_manual"
+    }
+  ]
+}

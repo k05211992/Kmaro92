@@ -9,6 +9,7 @@ interface Props {
   onChange: (updated: ManualLine) => void;
   onRemove: () => void;
   titlePlaceholder?: string;
+  isZero?: boolean;
 }
 
 export default function ManualLineRow({
@@ -16,13 +17,14 @@ export default function ManualLineRow({
   onChange,
   onRemove,
   titlePlaceholder = "Наименование",
+  isZero,
 }: Props) {
   function update(patch: Partial<Omit<ManualLine, "isManual">>) {
     onChange(updateManualLineSubtotal({ ...line, ...patch }));
   }
 
   return (
-    <div className="flex flex-wrap gap-2 items-start p-3 bg-amber-50 rounded-lg border border-amber-200">
+    <div className={`flex flex-wrap gap-2 items-start p-3 rounded-lg border transition-colors ${isZero ? "bg-red-50 border-red-300" : "bg-amber-50 border-amber-200"}`}>
       <div className="flex flex-wrap gap-2 items-center w-full">
         {/* Название */}
         <input

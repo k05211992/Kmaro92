@@ -18,7 +18,7 @@ import {
   makeManualLine,
   updateMaterialSubtotal,
 } from "@/lib/calc";
-import { getCatalog } from "@/lib/catalogStorage";
+import { getCatalog, getDefaultCatalog } from "@/lib/catalogStorage";
 import {
   saveState,
   loadState,
@@ -43,6 +43,62 @@ import {
 } from "@/types";
 
 const FALLBACK_CATEGORY = "lawn";
+
+// ─── Zero-price helpers ───────────────────────────────────────────────────────
+
+interface ZeroWarning {
+  label: string;
+  detail: string;
+}
+
+function getZeroWarnings(
+  estimate: Estimate,
+  inputs: WorkInput[],
+  manualWorks: ManualLine[],
+  materials: MaterialLine[],
+  extraCosts: ExtraCost[]
+): ZeroWarning[] {
+  const warnings: ZeroWarning[] = [];
+
+  // Catalog work rows: quantity entered but no estimate line resolved (category missing in catalog)
+  // OR resolved line has unitPrice = 0
+  for (const line of estimate.lines) {
+    if (line.quantity > 0 && line.unitPrice === 0) {
+      warnings.push({ label: line.variantLabel, detail: "цена 0 ₽/ед." });
+    }
+  }
+  // Work inputs with quantity > 0 that produced no estimate line
+  for (const input of inputs) {
+    if (input.quantity > 0 && !estimate.lines.find((l) => l.category === input.category)) {
+      warnings.push({ label: `Категория «${input.category}»`, detail: "не найдена в каталоге" });
+    }
+  }
+
+  // Manual works with title but zero subtotal
+  for (const m of manualWorks) {
+    if (m.title.trim() && m.subtotal === 0) {
+      const detail = m.price === 0 ? "цена 0 ₽" : "количество 0";
+      warnings.push({ label: m.title, detail });
+    }
+  }
+
+  // Materials with title but zero subtotal
+  for (const m of materials) {
+    if (m.title.trim() && m.subtotal === 0) {
+      const detail = m.price === 0 ? "цена 0 ₽" : "количество 0";
+      warnings.push({ label: m.title, detail });
+    }
+  }
+
+  // Extra costs with title but zero amount
+  for (const e of extraCosts) {
+    if (e.title.trim() && e.amount === 0) {
+      warnings.push({ label: e.title, detail: "сумма 0 ₽" });
+    }
+  }
+
+  return warnings;
+}
 
 interface State {
   inputs: WorkInput[];
@@ -134,13 +190,16 @@ function reducer(state: State, action: Action): State {
 }
 
 export default function HomePage() {
-  const [catalog, setCatalog] = useState<Catalog>(() =>
-    typeof window !== "undefined" ? getCatalog() : { works: [], materials: [], coefficients: [], extraCostPresets: [] }
-  );
+  // SSR-safe: getDefaultCatalog() is deterministic (no localStorage),
+  // so server and client render identical <option> lists on first pass.
+  // getCatalog() is called after mount to apply localStorage overrides.
+  const [catalog, setCatalog] = useState<Catalog>(getDefaultCatalog);
   const [state, dispatch] = useReducer(reducer, initialState);
   const [history, setHistory] = useState<SavedEstimate[]>([]);
   const [openPanel, setOpenPanel] = useState<"history" | "templates" | null>(null);
   const [savedFlash, setSavedFlash] = useState(false);
+  const [printPending, setPrintPending] = useState(false);
+  const [savePending, setSavePending] = useState(false);
 
   const complexityCoeff = catalog.coefficients.find((c) => c.id === "complexity");
   const coeffMin = complexityCoeff?.min ?? 1.0;
@@ -181,6 +240,11 @@ export default function HomePage() {
     setHistory(loadHistory());
   }, []);
 
+  // После mount: применить localStorage (rollback flag / пользовательский каталог)
+  useEffect(() => {
+    setCatalog(getCatalog());
+  }, []);
+
   // Обновление каталога при возврате из вкладки настроек
   useEffect(() => {
     const refresh = () => setCatalog(getCatalog());
@@ -194,13 +258,21 @@ export default function HomePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
 
-  const handlePrint = useCallback(() => {
+  const doPrint = useCallback(() => {
     sessionStorage.setItem("print_estimate", JSON.stringify({ estimate, meta: state.meta }));
     window.open("/print", "_blank");
   }, [estimate, state.meta]);
 
-  const handleSaveToHistory = useCallback(() => {
-    if (estimate.summary.baseTotal === 0) return;
+  const handlePrint = useCallback(() => {
+    const warnings = getZeroWarnings(estimate, state.inputs, state.manualWorks, state.materials, state.extraCosts);
+    if (warnings.length > 0) {
+      setPrintPending(true);
+    } else {
+      doPrint();
+    }
+  }, [estimate, state, doPrint]);
+
+  const doSave = useCallback(() => {
     saveToHistory(
       state.inputs,
       state.complexityCoeff,
@@ -215,6 +287,16 @@ export default function HomePage() {
     setSavedFlash(true);
     setTimeout(() => setSavedFlash(false), 2000);
   }, [state, estimate]);
+
+  const handleSaveToHistory = useCallback(() => {
+    if (estimate.summary.baseTotal === 0) return;
+    const warnings = getZeroWarnings(estimate, state.inputs, state.manualWorks, state.materials, state.extraCosts);
+    if (warnings.length > 0) {
+      setSavePending(true);
+    } else {
+      doSave();
+    }
+  }, [state, estimate, doSave]);
 
   const handleOpen = useCallback((entry: SavedEstimate) => {
     dispatch({
@@ -269,6 +351,29 @@ export default function HomePage() {
 
   const { summary } = estimate;
   const hasContent = summary.baseTotal > 0;
+
+  // Zero-price analysis
+  const zeroWarnings = getZeroWarnings(estimate, state.inputs, state.manualWorks, state.materials, state.extraCosts);
+  const hasZeroWarnings = zeroWarnings.length > 0;
+
+  // Sets for visual row marking
+  const zeroWorkIndices = new Set(
+    state.inputs.flatMap((input, i) => {
+      if (input.quantity <= 0) return [];
+      const line = estimate.lines.find((l) => l.category === input.category);
+      if (!line || line.unitPrice === 0) return [i];
+      return [];
+    })
+  );
+  const zeroManualIds = new Set(
+    state.manualWorks.filter((m) => m.title.trim() && m.subtotal === 0).map((m) => m.id)
+  );
+  const zeroMaterialIds = new Set(
+    state.materials.filter((m) => m.title.trim() && m.subtotal === 0).map((m) => m.id)
+  );
+  const zeroExtraCostIds = new Set(
+    state.extraCosts.filter((e) => e.title.trim() && e.amount === 0).map((e) => e.id)
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -362,12 +467,14 @@ export default function HomePage() {
               <h2 className="font-semibold text-gray-800">Работы</h2>
               {state.inputs.map((input, i) => (
                 <WorkRow key={i} input={input} categories={catalog.works}
+                  isZero={zeroWorkIndices.has(i)}
                   onChange={(v) => dispatch({ type: "SET_INPUT", index: i, value: v })}
                   onRemove={() => dispatch({ type: "REMOVE_ROW", index: i })}
                 />
               ))}
               {state.manualWorks.map((line, i) => (
                 <ManualLineRow key={line.id} line={line} titlePlaceholder="Наименование работы"
+                  isZero={zeroManualIds.has(line.id)}
                   onChange={(v) => dispatch({ type: "SET_MANUAL_WORK", index: i, value: v })}
                   onRemove={() => dispatch({ type: "REMOVE_MANUAL_WORK", index: i })}
                 />
@@ -392,6 +499,7 @@ export default function HomePage() {
               )}
               {state.materials.map((m, i) => (
                 <MaterialRow key={m.id} material={m} presets={catalog.materials}
+                  isZero={zeroMaterialIds.has(m.id)}
                   onChange={(v) => dispatch({ type: "SET_MATERIAL", index: i, value: v })}
                   onRemove={() => dispatch({ type: "REMOVE_MATERIAL", index: i })}
                 />
@@ -410,6 +518,7 @@ export default function HomePage() {
               )}
               {state.extraCosts.map((cost, i) => (
                 <ExtraCostRow key={cost.id} cost={cost} suggestions={extraSuggestions}
+                  isZero={zeroExtraCostIds.has(cost.id)}
                   onChange={(v) => dispatch({ type: "SET_EXTRA_COST", index: i, value: v })}
                   onRemove={() => dispatch({ type: "REMOVE_EXTRA_COST", index: i })}
                 />
@@ -468,6 +577,70 @@ export default function HomePage() {
                   </div>
                 )}
               </div>
+
+              {/* Zero-price warning banner */}
+              {hasContent && hasZeroWarnings && (
+                <div className="mb-4 rounded-lg border border-amber-300 bg-amber-50 p-3">
+                  <p className="text-xs font-semibold text-amber-800 mb-1.5">
+                    ⚠ Строки с нулевой суммой — проверьте перед печатью
+                  </p>
+                  <ul className="space-y-0.5">
+                    {zeroWarnings.map((w, i) => (
+                      <li key={i} className="text-xs text-amber-700">
+                        <span className="font-medium">{w.label}</span>
+                        {" — "}{w.detail}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Confirm dialog: print */}
+              {printPending && (
+                <div className="mb-4 rounded-lg border border-amber-400 bg-amber-50 p-3">
+                  <p className="text-xs font-semibold text-amber-800 mb-2">
+                    В смете есть строки с 0 ₽. Всё равно распечатать?
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => { setPrintPending(false); doPrint(); }}
+                      className="text-xs px-3 py-1.5 rounded bg-amber-600 text-white hover:bg-amber-700 transition-colors"
+                    >
+                      Да, печатать
+                    </button>
+                    <button
+                      onClick={() => setPrintPending(false)}
+                      className="text-xs px-3 py-1.5 rounded border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors"
+                    >
+                      Отмена
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Confirm dialog: save */}
+              {savePending && (
+                <div className="mb-4 rounded-lg border border-amber-400 bg-amber-50 p-3">
+                  <p className="text-xs font-semibold text-amber-800 mb-2">
+                    В смете есть строки с 0 ₽. Всё равно сохранить в историю?
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => { setSavePending(false); doSave(); }}
+                      className="text-xs px-3 py-1.5 rounded bg-amber-600 text-white hover:bg-amber-700 transition-colors"
+                    >
+                      Да, сохранить
+                    </button>
+                    <button
+                      onClick={() => setSavePending(false)}
+                      className="text-xs px-3 py-1.5 rounded border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors"
+                    >
+                      Отмена
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <EstimateTable estimate={estimate} />
             </section>
 

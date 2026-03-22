@@ -12,9 +12,10 @@ interface Props {
   presets: CatalogMaterial[];
   onChange: (updated: MaterialLine) => void;
   onRemove: () => void;
+  isZero?: boolean;
 }
 
-export default function MaterialRow({ material, presets, onChange, onRemove }: Props) {
+export default function MaterialRow({ material, presets, onChange, onRemove, isZero }: Props) {
   const activePresets = presets.filter((p) => p.active !== false);
 
   function update(patch: Partial<MaterialLine>) {
@@ -38,7 +39,7 @@ export default function MaterialRow({ material, presets, onChange, onRemove }: P
         ))}
       </datalist>
 
-      <div className="flex flex-wrap gap-2 items-start p-3 bg-white rounded-lg border border-gray-200">
+      <div className={`flex flex-wrap gap-2 items-start p-3 bg-white rounded-lg border transition-colors ${isZero ? "border-amber-400 bg-amber-50" : "border-gray-200"}`}>
         <div className="flex flex-wrap gap-2 items-center w-full">
           {/* Название */}
           <input

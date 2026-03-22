@@ -9,9 +9,10 @@ interface Props {
   suggestions: string[];
   onChange: (updated: ExtraCost) => void;
   onRemove: () => void;
+  isZero?: boolean;
 }
 
-export default function ExtraCostRow({ cost, suggestions, onChange, onRemove }: Props) {
+export default function ExtraCostRow({ cost, suggestions, onChange, onRemove, isZero }: Props) {
   return (
     <>
       <datalist id={DATALIST_ID}>
@@ -20,7 +21,7 @@ export default function ExtraCostRow({ cost, suggestions, onChange, onRemove }: 
         ))}
       </datalist>
 
-      <div className="flex flex-wrap gap-2 items-center p-3 bg-white rounded-lg border border-gray-200">
+      <div className={`flex flex-wrap gap-2 items-center p-3 bg-white rounded-lg border transition-colors ${isZero ? "border-amber-400 bg-amber-50" : "border-gray-200"}`}>
         {/* Название */}
         <input
           type="text"

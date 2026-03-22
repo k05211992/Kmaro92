@@ -1,41 +1,67 @@
 /**
- * Feature flag: catalog-v2 preview mode.
+ * Feature flag: catalog-v2 is now the DEFAULT.
  *
- * When enabled, the adapter layer is activated and a preview panel
- * becomes visible in the UI (without changing the active/default catalog).
+ * catalog-v2 prices are used for all mapped v1 works/materials.
+ * Unmapped items fall back to v1 prices. History IDs are preserved.
  *
- * Toggle via:
- *   - localStorage (browser DevTools or the UI toggle)
- *   - NEXT_PUBLIC_CATALOG_V2_PREVIEW=true env variable (build-time opt-in)
+ * ROLLBACK (temporary, per-browser):
+ *   localStorage.setItem("landscape_catalog_v2_rollback", "true")
+ *   → page reload → v1 prices restored
  *
- * The production catalog (v1) remains the default at all times.
+ *   localStorage.removeItem("landscape_catalog_v2_rollback")
+ *   → page reload → v2 restored (default)
+ *
+ * Build-time force-rollback:
+ *   NEXT_PUBLIC_CATALOG_V2_ROLLBACK=true in .env.local
  */
 
-export const CATALOG_V2_PREVIEW_STORAGE_KEY = "landscape_catalog_v2_preview";
+export const CATALOG_V2_ROLLBACK_KEY = "landscape_catalog_v2_rollback";
 
-/** Returns true when the v2 preview is active */
+/** Returns true when catalog-v2 is active (default). */
+export function isCatalogV2Active(): boolean {
+  // Build-time force-rollback
+  if (process.env.NEXT_PUBLIC_CATALOG_V2_ROLLBACK === "true") return false;
+  // Runtime opt-out
+  if (typeof window === "undefined") return true;
+  return localStorage.getItem(CATALOG_V2_ROLLBACK_KEY) !== "true";
+}
+
+/** Temporarily roll back to v1 prices (survives page reload). */
+export function enableCatalogV2Rollback(): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(CATALOG_V2_ROLLBACK_KEY, "true");
+}
+
+/** Restore v2 as default (remove rollback). */
+export function disableCatalogV2Rollback(): void {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(CATALOG_V2_ROLLBACK_KEY);
+}
+
+// ─── Legacy aliases (kept for any existing callers) ───────────────────────────
+
+/** @deprecated Use isCatalogV2Active() */
+export const CATALOG_V2_PREVIEW_STORAGE_KEY = CATALOG_V2_ROLLBACK_KEY;
+
+/** @deprecated Use isCatalogV2Active() */
 export function isCatalogV2PreviewEnabled(): boolean {
-  // Build-time env opt-in (set in .env.local)
-  if (process.env.NEXT_PUBLIC_CATALOG_V2_PREVIEW === "true") return true;
-
-  // Runtime localStorage toggle
-  if (typeof window === "undefined") return false;
-  return localStorage.getItem(CATALOG_V2_PREVIEW_STORAGE_KEY) === "true";
+  return isCatalogV2Active();
 }
 
+/** @deprecated Use disableCatalogV2Rollback() */
 export function enableCatalogV2Preview(): void {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(CATALOG_V2_PREVIEW_STORAGE_KEY, "true");
+  disableCatalogV2Rollback();
 }
 
+/** @deprecated Use enableCatalogV2Rollback() */
 export function disableCatalogV2Preview(): void {
-  if (typeof window === "undefined") return;
-  localStorage.removeItem(CATALOG_V2_PREVIEW_STORAGE_KEY);
+  enableCatalogV2Rollback();
 }
 
+/** @deprecated */
 export function toggleCatalogV2Preview(): boolean {
-  const next = !isCatalogV2PreviewEnabled();
-  if (next) enableCatalogV2Preview();
-  else disableCatalogV2Preview();
+  const next = !isCatalogV2Active();
+  if (next) disableCatalogV2Rollback();
+  else enableCatalogV2Rollback();
   return next;
 }

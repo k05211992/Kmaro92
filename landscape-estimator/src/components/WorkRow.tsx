@@ -7,15 +7,16 @@ interface Props {
   categories: CatalogCategory[];
   onChange: (updated: WorkInput) => void;
   onRemove: () => void;
+  isZero?: boolean;
 }
 
-export default function WorkRow({ input, categories, onChange, onRemove }: Props) {
+export default function WorkRow({ input, categories, onChange, onRemove, isZero }: Props) {
   const activeCategories = categories.filter((c) => c.active !== false);
   const cat = activeCategories.find((c) => c.id === input.category) ?? activeCategories[0];
   const activeVariants = cat?.variants.filter((v) => v.active !== false) ?? [];
 
   return (
-    <div className="flex flex-wrap gap-2 items-center p-3 bg-white rounded-lg border border-gray-200">
+    <div className={`flex flex-wrap gap-2 items-center p-3 bg-white rounded-lg border transition-colors ${isZero ? "border-amber-400 bg-amber-50" : "border-gray-200"}`}>
       {/* Категория */}
       <select
         className="border border-gray-300 rounded px-2 py-1.5 text-sm flex-shrink-0"

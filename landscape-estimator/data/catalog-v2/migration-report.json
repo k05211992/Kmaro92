@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-23T17:05:21.890Z",
+  "generatedAt": "2026-03-23T20:21:05.602Z",
   "sourceFile": "KP_Generator_Template_v6_real_import.xlsx",
   "sheetsRead": [
     "WORK_MASTER_REAL",
@@ -11,22 +11,22 @@
   ],
   "counts": {
     "works": {
-      "total": 157,
-      "active": 157,
+      "total": 167,
+      "active": 167,
       "inactive": 0
     },
     "workVariants": {
-      "total": 157,
-      "active": 157
+      "total": 167,
+      "active": 167
     },
     "materials": {
-      "total": 121,
-      "active": 121,
+      "total": 127,
+      "active": 127,
       "inactive": 0
     },
     "materialVariants": {
-      "total": 121,
-      "active": 121
+      "total": 127,
+      "active": 127
     },
     "rawMappingRows": 279,
     "reviewGaps": 17
@@ -56,6 +56,7 @@
     "Ливневая канализация",
     "Мощение",
     "Освещение",
+    "Полив",
     "Ступени / пандусы / бетонные элементы"
   ],
   "validation": {

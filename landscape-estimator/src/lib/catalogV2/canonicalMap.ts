@@ -68,7 +68,11 @@ export const V1_WORK_CANONICAL_MAP: Record<string, CanonicalEntry> = {
     confidence: "exact",
     note: "Устройство ограничительного бордюра из металлического уголка 50*50мм",
   },
-  // curb:plastic — нет аналога в v2, falls through to requiresRemap
+  "curb:plastic": {
+    v2WorkId: "RWORK-0158",
+    confidence: "exact",
+    note: "Установка пластикового бордюра",
+  },
 
   // ── Дренаж ─────────────────────────────────────────────────────────────────
   "drainage:surface": {
@@ -89,9 +93,58 @@ export const V1_WORK_CANONICAL_MAP: Record<string, CanonicalEntry> = {
     note: "Монтаж встроенных в настил светильников с устройством отверстий в облицовке",
   },
 
-  // planting:* — нет прямых аналогов работ в v2 (только выкопка/уход)
-  // irrigation:* — нет аналогов в v2
-  // lighting:path, lighting:facade — нет прямых аналогов
+  // ── Посадки ────────────────────────────────────────────────────────────────
+  "planting:shrub": {
+    v2WorkId: "RWORK-0159",
+    confidence: "exact",
+    note: "Посадка кустарника",
+  },
+  "planting:tree_small": {
+    v2WorkId: "RWORK-0160",
+    confidence: "exact",
+    note: "Посадка дерева (до 2м)",
+  },
+  "planting:tree_large": {
+    v2WorkId: "RWORK-0161",
+    confidence: "exact",
+    note: "Посадка дерева (от 2м)",
+  },
+  "planting:perennial": {
+    v2WorkId: "RWORK-0162",
+    confidence: "exact",
+    note: "Посадка многолетников",
+  },
+  "planting:annual": {
+    v2WorkId: "RWORK-0163",
+    confidence: "exact",
+    note: "Посадка однолетников",
+  },
+
+  // ── Полив ──────────────────────────────────────────────────────────────────
+  "irrigation:zone_basic": {
+    v2WorkId: "RWORK-0164",
+    confidence: "exact",
+    note: "Монтаж зоны полива (базовый)",
+  },
+  "irrigation:zone_premium": {
+    v2WorkId: "RWORK-0165",
+    confidence: "exact",
+    note: "Монтаж зоны полива (премиум)",
+  },
+  "irrigation:drip": {
+    v2WorkId: "RWORK-0166",
+    confidence: "exact",
+    note: "Монтаж капельного полива",
+  },
+
+  // ── Освещение (продолжение) ─────────────────────────────────────────────────
+  "lighting:facade": {
+    v2WorkId: "RWORK-0167",
+    confidence: "exact",
+    note: "Монтаж фасадного освещения",
+  },
+
+  // lighting:path — нет прямого аналога в v2 (weak candidate, excluded from backfill)
 };
 
 /**
@@ -143,7 +196,35 @@ export const V1_MATERIAL_CANONICAL_MAP: Record<string, MaterialCanonicalEntry> =
       confidence: "canonical",
       note: "Кабель силовой ВБШв нг(А)LS 3*1,5 0,66кВ броня",
     },
-    // Нет аналогов: Песок строительный, Щебень фракция 20-40, Бордюрный камень,
-    //               Тротуарная плитка, Семена газонные, Трубы ПНД Ø32,
-    //               Спринклеры роторные, Светильник грунтовый
+    "песок строительный": {
+      v2MaterialId: "RMAT-0122",
+      confidence: "exact",
+      note: "Песок строительный, м³",
+    },
+    "бордюрный камень": {
+      v2MaterialId: "RMAT-0123",
+      confidence: "exact",
+      note: "Бордюрный камень бетонный",
+    },
+    "семена газонные": {
+      v2MaterialId: "RMAT-0124",
+      confidence: "exact",
+      note: "Семена газонные",
+    },
+    "трубы пнд ø32": {
+      v2MaterialId: "RMAT-0125",
+      confidence: "exact",
+      note: "Труба ПНД Ø32",
+    },
+    "спринклеры роторные": {
+      v2MaterialId: "RMAT-0126",
+      confidence: "exact",
+      note: "Спринклер роторный",
+    },
+    "светильник грунтовый": {
+      v2MaterialId: "RMAT-0127",
+      confidence: "exact",
+      note: "Светильник грунтовый",
+    },
+    // Нет аналогов (weak / deferred): Щебень фракция 20-40, Тротуарная плитка
   };

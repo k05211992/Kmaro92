@@ -188,3 +188,58 @@ export function exportCatalogJSON(catalog: Catalog): void {
   a.click();
   URL.revokeObjectURL(url);
 }
+
+// ─── Price source map ─────────────────────────────────────────────────────────
+
+export type PriceSourceEntry = {
+  type: "v2" | "v1_fallback";
+  id: string;        // RWORK-* / RMAT-* или "v1"
+  seedPrice: number; // цена из seed — для детекции ручного изменения
+};
+
+export type PriceSourceMap = {
+  works: Record<string, PriceSourceEntry>;     // ключ: "catId:variantId"
+  materials: Record<string, PriceSourceEntry>; // ключ: mat.id
+};
+
+/**
+ * Возвращает фактический источник цены для каждой позиции seed-каталога.
+ * Прогоняет ту же логику, что buildV2SeedCatalog():
+ *   canonical map + getV2WorkPrice / getV2MaterialPrice.
+ * Не читает localStorage. Не меняет никакого состояния.
+ */
+export function getPriceSourceMap(): PriceSourceMap {
+  const v1 = buildV1SeedCatalog();
+  const works: Record<string, PriceSourceEntry> = {};
+  const materials: Record<string, PriceSourceEntry> = {};
+
+  for (const cat of v1.works) {
+    for (const variant of cat.variants) {
+      const pairKey = `${cat.id}:${variant.id}`;
+      const entry = V1_WORK_CANONICAL_MAP[pairKey] ?? V1_WORK_CANONICAL_MAP[cat.id];
+      if (entry) {
+        const v2Price = getV2WorkPrice(entry.v2WorkId);
+        if (v2Price !== null) {
+          works[pairKey] = { type: "v2", id: entry.v2WorkId, seedPrice: v2Price };
+          continue;
+        }
+      }
+      works[pairKey] = { type: "v1_fallback", id: "v1", seedPrice: variant.unitPrice };
+    }
+  }
+
+  for (const mat of v1.materials) {
+    const normKey = mat.title.toLowerCase().trim();
+    const entry = V1_MATERIAL_CANONICAL_MAP[normKey];
+    if (entry) {
+      const v2Price = getV2MaterialPrice(entry.v2MaterialId);
+      if (v2Price !== null) {
+        materials[mat.id] = { type: "v2", id: entry.v2MaterialId, seedPrice: v2Price };
+        continue;
+      }
+    }
+    materials[mat.id] = { type: "v1_fallback", id: "v1", seedPrice: mat.defaultPrice };
+  }
+
+  return { works, materials };
+}

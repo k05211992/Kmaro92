@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
 import Link from "next/link";
 import UnitSelect from "@/components/UnitSelect";
-import { getCatalog, saveCatalog, resetCatalog, exportCatalogJSON } from "@/lib/catalogStorage";
+import { getCatalog, saveCatalog, resetCatalog, exportCatalogJSON, getPriceSourceMap } from "@/lib/catalogStorage";
+import type { PriceSourceMap, PriceSourceEntry } from "@/lib/catalogStorage";
 import type {
   Catalog,
   CatalogCategory,
@@ -30,9 +31,40 @@ function ActionBtn({ onClick, label, color = "gray" }: { onClick: () => void; la
   return <button onClick={onClick} className={`text-xs ${colors[color]} transition-colors`}>{label}</button>;
 }
 
+function PriceSourceBadge({
+  entry,
+  currentPrice,
+}: {
+  entry: PriceSourceEntry | undefined;
+  currentPrice: number;
+}) {
+  if (!entry) return <span className="text-xs text-gray-300">—</span>;
+  const changed = currentPrice !== entry.seedPrice;
+  if (changed) {
+    const base = entry.type === "v2" ? "v2" : "v1";
+    return (
+      <span className="inline-block text-xs px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">
+        изм. / {base}
+      </span>
+    );
+  }
+  if (entry.type === "v2") {
+    return (
+      <span className="inline-block text-xs px-1.5 py-0.5 rounded-full bg-green-100 text-green-700" title={entry.id}>
+        v2 · {entry.id}
+      </span>
+    );
+  }
+  return (
+    <span className="inline-block text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500">
+      v1 fallback
+    </span>
+  );
+}
+
 // ─── Вкладка: Работы ─────────────────────────────────────────────────────────
 
-function WorksTab({ catalog, onUpdate }: { catalog: Catalog; onUpdate: (c: Catalog) => void }) {
+function WorksTab({ catalog, onUpdate, sourceMap }: { catalog: Catalog; onUpdate: (c: Catalog) => void; sourceMap: PriceSourceMap }) {
   const [search, setSearch] = useState("");
   const [filterActive, setFilterActive] = useState<"all" | "active" | "inactive">("all");
   const [editVariantId, setEditVariantId] = useState<string | null>(null);
@@ -175,6 +207,7 @@ function WorksTab({ catalog, onUpdate }: { catalog: Catalog; onUpdate: (c: Catal
                 <th className="px-4 py-1.5 font-medium">Вариант</th>
                 <th className="px-4 py-1.5 font-medium text-right">Цена, ₽</th>
                 <th className="px-4 py-1.5 font-medium text-center">Статус</th>
+                <th className="px-4 py-1.5 font-medium text-center">Источник</th>
                 <th className="px-4 py-1.5 font-medium text-right">Действия</th>
               </tr>
             </thead>
@@ -204,6 +237,9 @@ function WorksTab({ catalog, onUpdate }: { catalog: Catalog; onUpdate: (c: Catal
                     <td className="px-4 py-2 text-gray-800">{v.label}</td>
                     <td className="px-4 py-2 text-right tabular-nums text-gray-700">{v.unitPrice.toLocaleString("ru-RU")} ₽</td>
                     <td className="px-4 py-2 text-center"><Badge active={v.active !== false} /></td>
+                    <td className="px-4 py-2 text-center">
+                      <PriceSourceBadge entry={sourceMap.works[`${cat.id}:${v.id}`]} currentPrice={v.unitPrice} />
+                    </td>
                     <td className="px-4 py-2 text-right">
                       <div className="flex gap-2 justify-end">
                         <ActionBtn onClick={() => startEditVariant(cat.id, v, cat.unit)} label="Ред." color="blue" />
@@ -272,7 +308,7 @@ function WorksTab({ catalog, onUpdate }: { catalog: Catalog; onUpdate: (c: Catal
 
 // ─── Вкладка: Материалы ──────────────────────────────────────────────────────
 
-function MaterialsTab({ catalog, onUpdate }: { catalog: Catalog; onUpdate: (c: Catalog) => void }) {
+function MaterialsTab({ catalog, onUpdate, sourceMap }: { catalog: Catalog; onUpdate: (c: Catalog) => void; sourceMap: PriceSourceMap }) {
   const [search, setSearch] = useState("");
   const [filterActive, setFilterActive] = useState<"all" | "active" | "inactive">("all");
   const [editId, setEditId] = useState<string | null>(null);
@@ -323,7 +359,7 @@ function MaterialsTab({ catalog, onUpdate }: { catalog: Catalog; onUpdate: (c: C
       <div className="border border-gray-200 rounded-lg overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-xs text-gray-400 text-left">
-            <tr><th className="px-4 py-2 font-medium">Название</th><th className="px-4 py-2 font-medium">Ед.</th><th className="px-4 py-2 font-medium text-right">Цена, ₽</th><th className="px-4 py-2 font-medium text-center">Статус</th><th className="px-4 py-2 font-medium text-right">Действия</th></tr>
+            <tr><th className="px-4 py-2 font-medium">Название</th><th className="px-4 py-2 font-medium">Ед.</th><th className="px-4 py-2 font-medium text-right">Цена, ₽</th><th className="px-4 py-2 font-medium text-center">Статус</th><th className="px-4 py-2 font-medium text-center">Источник</th><th className="px-4 py-2 font-medium text-right">Действия</th></tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
             {filtered.map((m) => editId === m.id ? (
@@ -339,6 +375,9 @@ function MaterialsTab({ catalog, onUpdate }: { catalog: Catalog; onUpdate: (c: C
                 <td className="px-4 py-2 text-gray-500">{m.unit}</td>
                 <td className="px-4 py-2 text-right tabular-nums text-gray-700">{m.defaultPrice.toLocaleString("ru-RU")} ₽</td>
                 <td className="px-4 py-2 text-center"><Badge active={m.active !== false} /></td>
+                <td className="px-4 py-2 text-center">
+                  <PriceSourceBadge entry={sourceMap.materials[m.id]} currentPrice={m.defaultPrice} />
+                </td>
                 <td className="px-4 py-2 text-right"><div className="flex gap-2 justify-end"><ActionBtn onClick={() => startEdit(m)} label="Ред." color="blue" /><ActionBtn onClick={() => toggle(m.id)} label={m.active === false ? "Вкл." : "Выкл."} /><ActionBtn onClick={() => remove(m.id)} label="Удалить" color="red" /></div></td>
               </tr>
             ))}
@@ -495,6 +534,12 @@ export default function CatalogPage() {
   );
   const [tab, setTab] = useState<TabId>("works");
   const importRef = useRef<HTMLInputElement>(null);
+  const sourceMap = useMemo(() => getPriceSourceMap(), []);
+
+  // После mount: подтянуть localStorage (аналогично главной странице)
+  useEffect(() => {
+    setCatalog(getCatalog());
+  }, []);
 
   function update(updated: Catalog) {
     saveCatalog(updated);
@@ -564,8 +609,8 @@ export default function CatalogPage() {
         </div>
 
         {/* Содержимое вкладок */}
-        {tab === "works" && <WorksTab catalog={catalog} onUpdate={update} />}
-        {tab === "materials" && <MaterialsTab catalog={catalog} onUpdate={update} />}
+        {tab === "works" && <WorksTab catalog={catalog} onUpdate={update} sourceMap={sourceMap} />}
+        {tab === "materials" && <MaterialsTab catalog={catalog} onUpdate={update} sourceMap={sourceMap} />}
         {tab === "coefficients" && <CoefficientsTab catalog={catalog} onUpdate={update} />}
         {tab === "presets" && <PresetsTab catalog={catalog} onUpdate={update} />}
       </div>

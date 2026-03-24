@@ -1,0 +1,86 @@
+{
+  "generatedAt": "2026-03-23T20:21:05.602Z",
+  "sourceFile": "KP_Generator_Template_v6_real_import.xlsx",
+  "sheetsRead": [
+    "WORK_MASTER_REAL",
+    "WORK_VARIANTS_REAL",
+    "MATERIAL_MASTER_REAL",
+    "MATERIAL_VARIANTS_REAL",
+    "RAW_MAPPING_REAL",
+    "REAL_GAPS"
+  ],
+  "counts": {
+    "works": {
+      "total": 167,
+      "active": 167,
+      "inactive": 0
+    },
+    "workVariants": {
+      "total": 167,
+      "active": 167
+    },
+    "materials": {
+      "total": 127,
+      "active": 127,
+      "inactive": 0
+    },
+    "materialVariants": {
+      "total": 127,
+      "active": 127
+    },
+    "rawMappingRows": 279,
+    "reviewGaps": 17
+  },
+  "workSections": [
+    "Временные сооружения и обеспечение",
+    "Вывоз и утилизация",
+    "Газон",
+    "Демонтаж и расчистка",
+    "Дренаж",
+    "Закладные / коммуникации",
+    "Земляные и планировочные работы",
+    "Ливневая канализация",
+    "Логистика и снабжение",
+    "Мощение",
+    "Накладные / коэффициенты",
+    "Освещение",
+    "Полив",
+    "Посадки и уход",
+    "Сопровождение проекта / услуги",
+    "Ступени / пандусы / бетонные элементы"
+  ],
+  "materialSections": [
+    "Газон",
+    "Дренаж",
+    "Земляные и планировочные работы",
+    "Ливневая канализация",
+    "Мощение",
+    "Освещение",
+    "Полив",
+    "Ступени / пандусы / бетонные элементы"
+  ],
+  "validation": {
+    "errors": 1,
+    "errorList": [
+      {
+        "sheet": "MATERIAL_VARIANTS_REAL",
+        "id": "RMAT-0087",
+        "field": "PricePerUnit",
+        "issue": "missing or empty"
+      }
+    ]
+  },
+  "outputFiles": [
+    "works.json",
+    "work-variants.json",
+    "materials.json",
+    "material-variants.json",
+    "raw-mapping.json",
+    "review-gaps.json"
+  ],
+  "notes": [
+    "src/config/pricing.json and src/config/materials.json were NOT modified.",
+    "This is catalog-v2 import only. Runtime still uses v1 until adapter is enabled.",
+    "review-gaps.json contains 17 rows requiring manual review — do not auto-import."
+  ]
+}

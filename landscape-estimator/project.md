@@ -34,10 +34,13 @@
 
 ### Генератор смет (`/`)
 
+- **Секционная структура сметы**: смета делится на разделы (SectionPanel)
+  - `standard` — раздел с работами (каталог + ручные) и материалами
+  - `extra_costs` — раздел доп. расходов (вывоз грунта, доставка и т.д.)
+  - `org_costs` — раздел орг. затрат (% или фиксированные суммы)
 - Добавление работ из каталога (категория + вариант + количество)
 - Ручные строки работ (произвольное название, ед. изм., цена)
 - Материалы с автодополнением из каталога
-- Дополнительные расходы с подсказками (доставка, вывоз мусора и т.д.)
 - Коэффициент сложности объекта (ползунок 1.0–1.5, применяется только к работам из каталога)
 - Финансовые условия: наценка (% или фикс), скидка (% или фикс), минимальный заказ, предоплата
 - Итоговый блок с разбивкой: работы → материалы → доп. расходы → наценка → скидка → итого → предоплата → остаток
@@ -69,14 +72,26 @@
 ## Основные сущности
 
 ```
+── Входные данные (State) ──────────────────────────────────────────────────────
+EstimateSection    — раздел сметы {sectionName, sectionType, catalogItems,
+                     manualItems, materials, extraItems, orgCostItems}
+SectionType        — "standard" | "extra_costs" | "org_costs"
 WorkInput          — строка работы из каталога {category, variant, quantity}
 ManualLine         — ручная строка работы {title, unit, quantity, price}
 MaterialLine       — материал {title, unit, quantity, price}
 ExtraCost          — доп. расход {title, amount}
+OrgCostItem        — статья орг. затрат {title, type: percent|fixed, value}
 FinancialTerms     — финансовые условия {markup, discount, minimum, prepayment}
-Estimate           — собранная смета со всеми подитогами и финансовым итогом
-SavedEstimate      — запись в истории
-EstimateTemplate   — шаблон сметы
+
+── Результаты (Estimate) ───────────────────────────────────────────────────────
+EstimateSectionResult — вычисленный раздел {lines, manualItems, materials,
+                         extraItems, orgCostResults, worksTotal, sectionTotal}
+Estimate           — собранная смета {sections[], lines[], summary, total, ...}
+EstimateSummary    — финансовый итог {baseTotal, markupAmount, discountAmount, ...}
+
+── Хранилище ───────────────────────────────────────────────────────────────────
+SavedEstimate      — запись в истории (новый формат: sections[]; legacy: inputs[])
+EstimateTemplate   — шаблон сметы (новый формат: sections[]; legacy: inputs[])
 Catalog            — каталог {works, materials, coefficients, extraCostPresets}
 ```
 

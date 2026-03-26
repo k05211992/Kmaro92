@@ -1,11 +1,8 @@
 "use client";
 
-import { useEffect, useReducer, useCallback, useState } from "react";
+import { useEffect, useReducer, useCallback, useState, useRef } from "react";
 import Link from "next/link";
-import WorkRow from "@/components/WorkRow";
-import ManualLineRow from "@/components/ManualLineRow";
-import MaterialRow from "@/components/MaterialRow";
-import ExtraCostRow from "@/components/ExtraCostRow";
+import SectionPanel from "@/components/SectionPanel";
 import FinancialTermsForm from "@/components/FinancialTermsForm";
 import EstimateTable from "@/components/EstimateTable";
 import HistoryPanel from "@/components/HistoryPanel";
@@ -13,10 +10,7 @@ import TemplatePanel from "@/components/TemplatePanel";
 import {
   buildEstimate,
   formatRub,
-  makeMaterial,
-  makeExtraCost,
-  makeManualLine,
-  updateMaterialSubtotal,
+  makeSection,
 } from "@/lib/calc";
 import { getCatalog, getDefaultCatalog } from "@/lib/catalogStorage";
 import {
@@ -26,160 +20,78 @@ import {
   loadHistory,
   deleteFromHistory,
   duplicateInHistory,
+  migrateHistoryEntry,
 } from "@/lib/storage";
 import { saveTemplate } from "@/lib/templateStorage";
 import {
   DEFAULT_FINANCIAL_TERMS,
-  type WorkInput,
   type ProjectMeta,
   type Estimate,
   type SavedEstimate,
-  type MaterialLine,
-  type ExtraCost,
-  type ManualLine,
   type FinancialTerms,
   type Catalog,
   type EstimateTemplate,
+  type EstimateSection,
+  type SectionType,
 } from "@/types";
 
-const FALLBACK_CATEGORY = "lawn";
-
-// ─── Zero-price helpers ───────────────────────────────────────────────────────
-
-interface ZeroWarning {
-  label: string;
-  detail: string;
-}
-
-function getZeroWarnings(
-  estimate: Estimate,
-  inputs: WorkInput[],
-  manualWorks: ManualLine[],
-  materials: MaterialLine[],
-  extraCosts: ExtraCost[]
-): ZeroWarning[] {
-  const warnings: ZeroWarning[] = [];
-
-  // Catalog work rows: quantity entered but no estimate line resolved (category missing in catalog)
-  // OR resolved line has unitPrice = 0
-  for (const line of estimate.lines) {
-    if (line.quantity > 0 && line.unitPrice === 0) {
-      warnings.push({ label: line.variantLabel, detail: "цена 0 ₽/ед." });
-    }
-  }
-  // Work inputs with quantity > 0 that produced no estimate line
-  for (const input of inputs) {
-    if (input.quantity > 0 && !estimate.lines.find((l) => l.category === input.category)) {
-      warnings.push({ label: `Категория «${input.category}»`, detail: "не найдена в каталоге" });
-    }
-  }
-
-  // Manual works with title but zero subtotal
-  for (const m of manualWorks) {
-    if (m.title.trim() && m.subtotal === 0) {
-      const detail = m.price === 0 ? "цена 0 ₽" : "количество 0";
-      warnings.push({ label: m.title, detail });
-    }
-  }
-
-  // Materials with title but zero subtotal
-  for (const m of materials) {
-    if (m.title.trim() && m.subtotal === 0) {
-      const detail = m.price === 0 ? "цена 0 ₽" : "количество 0";
-      warnings.push({ label: m.title, detail });
-    }
-  }
-
-  // Extra costs with title but zero amount
-  for (const e of extraCosts) {
-    if (e.title.trim() && e.amount === 0) {
-      warnings.push({ label: e.title, detail: "сумма 0 ₽" });
-    }
-  }
-
-  return warnings;
-}
+// ─── State ───────────────────────────────────────────────────────────────────
 
 interface State {
-  inputs: WorkInput[];
+  sections: EstimateSection[];
   complexityCoeff: number;
   meta: ProjectMeta;
-  materials: MaterialLine[];
-  extraCosts: ExtraCost[];
-  manualWorks: ManualLine[];
   financialTerms: FinancialTerms;
 }
 
 type Action =
-  | { type: "SET_INPUT"; index: number; value: WorkInput }
-  | { type: "ADD_ROW"; category: string }
-  | { type: "REMOVE_ROW"; index: number }
+  | { type: "SET_SECTION"; id: string; value: EstimateSection }
+  | { type: "ADD_SECTION"; sectionType: SectionType }
+  | { type: "REMOVE_SECTION"; id: string }
   | { type: "SET_COEFF"; value: number }
   | { type: "SET_META"; value: ProjectMeta }
-  | { type: "ADD_MATERIAL" }
-  | { type: "SET_MATERIAL"; index: number; value: MaterialLine }
-  | { type: "REMOVE_MATERIAL"; index: number }
-  | { type: "ADD_EXTRA_COST" }
-  | { type: "SET_EXTRA_COST"; index: number; value: ExtraCost }
-  | { type: "REMOVE_EXTRA_COST"; index: number }
-  | { type: "ADD_MANUAL_WORK" }
-  | { type: "SET_MANUAL_WORK"; index: number; value: ManualLine }
-  | { type: "REMOVE_MANUAL_WORK"; index: number }
   | { type: "SET_FINANCIAL_TERMS"; value: FinancialTerms }
   | { type: "LOAD"; state: State };
 
+function makeInitialSections(): EstimateSection[] {
+  return [
+    makeSection({ sectionName: "Основные работы", sectionType: "standard" }),
+  ];
+}
+
 const initialState: State = {
-  inputs: [{ category: FALLBACK_CATEGORY, quantity: 0 }],
+  sections: makeInitialSections(),
   complexityCoeff: 1.0,
   meta: { clientName: "", phone: "", address: "", note: "" },
-  materials: [],
-  extraCosts: [],
-  manualWorks: [],
   financialTerms: DEFAULT_FINANCIAL_TERMS,
 };
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
-    case "ADD_ROW":
-      return { ...state, inputs: [...state.inputs, { category: action.category, quantity: 0 }] };
-    case "REMOVE_ROW":
-      return { ...state, inputs: state.inputs.filter((_, i) => i !== action.index) };
-    case "SET_INPUT": {
-      const inputs = [...state.inputs];
-      inputs[action.index] = action.value;
-      return { ...state, inputs };
-    }
+    case "SET_SECTION":
+      return {
+        ...state,
+        sections: state.sections.map((s) =>
+          s.id === action.id ? action.value : s
+        ),
+      };
+    case "ADD_SECTION":
+      return {
+        ...state,
+        sections: [
+          ...state.sections,
+          makeSection({ sectionType: action.sectionType, sectionName: "" }),
+        ],
+      };
+    case "REMOVE_SECTION":
+      return {
+        ...state,
+        sections: state.sections.filter((s) => s.id !== action.id),
+      };
     case "SET_COEFF":
       return { ...state, complexityCoeff: action.value };
     case "SET_META":
       return { ...state, meta: action.value };
-    case "ADD_MATERIAL":
-      return { ...state, materials: [...state.materials, makeMaterial()] };
-    case "SET_MATERIAL": {
-      const materials = [...state.materials];
-      materials[action.index] = updateMaterialSubtotal(action.value);
-      return { ...state, materials };
-    }
-    case "REMOVE_MATERIAL":
-      return { ...state, materials: state.materials.filter((_, i) => i !== action.index) };
-    case "ADD_EXTRA_COST":
-      return { ...state, extraCosts: [...state.extraCosts, makeExtraCost()] };
-    case "SET_EXTRA_COST": {
-      const extraCosts = [...state.extraCosts];
-      extraCosts[action.index] = action.value;
-      return { ...state, extraCosts };
-    }
-    case "REMOVE_EXTRA_COST":
-      return { ...state, extraCosts: state.extraCosts.filter((_, i) => i !== action.index) };
-    case "ADD_MANUAL_WORK":
-      return { ...state, manualWorks: [...state.manualWorks, makeManualLine()] };
-    case "SET_MANUAL_WORK": {
-      const manualWorks = [...state.manualWorks];
-      manualWorks[action.index] = action.value;
-      return { ...state, manualWorks };
-    }
-    case "REMOVE_MANUAL_WORK":
-      return { ...state, manualWorks: state.manualWorks.filter((_, i) => i !== action.index) };
     case "SET_FINANCIAL_TERMS":
       return { ...state, financialTerms: action.value };
     case "LOAD":
@@ -189,33 +101,63 @@ function reducer(state: State, action: Action): State {
   }
 }
 
+// ─── Zero-price helpers ───────────────────────────────────────────────────────
+
+interface ZeroWarning {
+  label: string;
+  detail: string;
+}
+
+function getZeroWarnings(estimate: Estimate): ZeroWarning[] {
+  const warnings: ZeroWarning[] = [];
+
+  for (const line of estimate.lines) {
+    if (line.quantity > 0 && line.unitPrice === 0) {
+      warnings.push({ label: line.variantLabel, detail: "цена 0 ₽/ед." });
+    }
+  }
+  for (const m of estimate.manualWorks) {
+    if (m.title.trim() && m.subtotal === 0) {
+      warnings.push({ label: m.title, detail: m.price === 0 ? "цена 0 ₽" : "количество 0" });
+    }
+  }
+  for (const m of estimate.materials) {
+    if (m.title.trim() && m.subtotal === 0) {
+      warnings.push({ label: m.title, detail: m.price === 0 ? "цена 0 ₽" : "количество 0" });
+    }
+  }
+  for (const e of estimate.extraCosts) {
+    if (e.title.trim() && e.amount === 0) {
+      warnings.push({ label: e.title, detail: "сумма 0 ₽" });
+    }
+  }
+
+  return warnings;
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
 export default function HomePage() {
-  // SSR-safe: getDefaultCatalog() is deterministic (no localStorage),
-  // so server and client render identical <option> lists on first pass.
-  // getCatalog() is called after mount to apply localStorage overrides.
   const [catalog, setCatalog] = useState<Catalog>(getDefaultCatalog);
   const [state, dispatch] = useReducer(reducer, initialState);
+  // Флаг: автосохранение не должно запускаться до первой загрузки черновика
+  const autosaveReady = useRef(false);
   const [history, setHistory] = useState<SavedEstimate[]>([]);
   const [openPanel, setOpenPanel] = useState<"history" | "templates" | null>(null);
   const [savedFlash, setSavedFlash] = useState(false);
   const [printPending, setPrintPending] = useState(false);
   const [savePending, setSavePending] = useState(false);
 
-  const complexityCoeff = catalog.coefficients.find((c) => c.id === "complexity");
-  const coeffMin = complexityCoeff?.min ?? 1.0;
-  const coeffMax = complexityCoeff?.max ?? 1.5;
+  const complexityConfig = catalog.coefficients.find((c) => c.id === "complexity");
+  const coeffMin = complexityConfig?.min ?? 1.0;
+  const coeffMax = complexityConfig?.max ?? 1.5;
   const extraSuggestions = catalog.extraCostPresets
     .filter((p) => p.active !== false)
     .map((p) => p.title);
-  const defaultCategory =
-    catalog.works.find((w) => w.active !== false)?.id ?? FALLBACK_CATEGORY;
 
   const estimate: Estimate = buildEstimate(
-    state.inputs,
+    state.sections,
     state.complexityCoeff,
-    state.materials,
-    state.extraCosts,
-    state.manualWorks,
     state.financialTerms,
     catalog.works
   );
@@ -227,12 +169,9 @@ export default function HomePage() {
       dispatch({
         type: "LOAD",
         state: {
-          inputs: saved.inputs,
+          sections: saved.sections,
           complexityCoeff: saved.complexityCoeff,
           meta: saved.meta,
-          materials: saved.materials ?? [],
-          extraCosts: saved.extraCosts ?? [],
-          manualWorks: saved.manualWorks ?? [],
           financialTerms: saved.financialTerms ?? DEFAULT_FINANCIAL_TERMS,
         },
       });
@@ -240,20 +179,24 @@ export default function HomePage() {
     setHistory(loadHistory());
   }, []);
 
-  // После mount: применить localStorage (rollback flag / пользовательский каталог)
   useEffect(() => {
     setCatalog(getCatalog());
   }, []);
 
-  // Обновление каталога при возврате из вкладки настроек
   useEffect(() => {
     const refresh = () => setCatalog(getCatalog());
     window.addEventListener("focus", refresh);
     return () => window.removeEventListener("focus", refresh);
   }, []);
 
-  // Автосохранение черновика
+  // Автосохранение черновика.
+  // Пропускаем ПЕРВЫЙ запуск (при монтировании), чтобы не затереть черновик
+  // из localStorage до того, как loadState() успеет его загрузить.
   useEffect(() => {
+    if (!autosaveReady.current) {
+      autosaveReady.current = true;
+      return;
+    }
     saveState({ ...state, estimate });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
@@ -264,23 +207,20 @@ export default function HomePage() {
   }, [estimate, state.meta]);
 
   const handlePrint = useCallback(() => {
-    const warnings = getZeroWarnings(estimate, state.inputs, state.manualWorks, state.materials, state.extraCosts);
+    const warnings = getZeroWarnings(estimate);
     if (warnings.length > 0) {
       setPrintPending(true);
     } else {
       doPrint();
     }
-  }, [estimate, state, doPrint]);
+  }, [estimate, doPrint]);
 
   const doSave = useCallback(() => {
     saveToHistory(
-      state.inputs,
+      state.sections,
       state.complexityCoeff,
       state.meta,
       estimate.total,
-      state.materials,
-      state.extraCosts,
-      state.manualWorks,
       state.financialTerms
     );
     setHistory(loadHistory());
@@ -290,24 +230,22 @@ export default function HomePage() {
 
   const handleSaveToHistory = useCallback(() => {
     if (estimate.summary.baseTotal === 0) return;
-    const warnings = getZeroWarnings(estimate, state.inputs, state.manualWorks, state.materials, state.extraCosts);
+    const warnings = getZeroWarnings(estimate);
     if (warnings.length > 0) {
       setSavePending(true);
     } else {
       doSave();
     }
-  }, [state, estimate, doSave]);
+  }, [estimate, doSave]);
 
   const handleOpen = useCallback((entry: SavedEstimate) => {
+    const sections = migrateHistoryEntry(entry);
     dispatch({
       type: "LOAD",
       state: {
-        inputs: entry.inputs,
+        sections,
         complexityCoeff: entry.complexityCoeff,
         meta: entry.meta,
-        materials: entry.materials ?? [],
-        extraCosts: entry.extraCosts ?? [],
-        manualWorks: entry.manualWorks ?? [],
         financialTerms: entry.financialTerms ?? DEFAULT_FINANCIAL_TERMS,
       },
     });
@@ -315,15 +253,28 @@ export default function HomePage() {
   }, []);
 
   const handleApplyTemplate = useCallback((tmpl: EstimateTemplate) => {
+    // Migrate template to sections if needed
+    const sections: EstimateSection[] = tmpl.sections && tmpl.sections.length > 0
+      ? tmpl.sections
+      : [
+          makeSection({
+            sectionName: "Основные работы",
+            sectionType: "standard",
+            catalogItems: tmpl.inputs,
+            manualItems: tmpl.manualWorks ?? [],
+            materials: tmpl.materials ?? [],
+          }),
+          ...(tmpl.extraCosts && tmpl.extraCosts.length > 0
+            ? [makeSection({ sectionName: "Доп. расходы", sectionType: "extra_costs", extraItems: tmpl.extraCosts })]
+            : []),
+        ];
+
     dispatch({
       type: "LOAD",
       state: {
-        inputs: tmpl.inputs,
+        sections,
         complexityCoeff: tmpl.complexityCoeff ?? 1.0,
         meta: { clientName: "", phone: "", address: "", note: "" },
-        materials: tmpl.materials ?? [],
-        extraCosts: tmpl.extraCosts ?? [],
-        manualWorks: tmpl.manualWorks ?? [],
         financialTerms: DEFAULT_FINANCIAL_TERMS,
       },
     });
@@ -335,11 +286,13 @@ export default function HomePage() {
       id: crypto.randomUUID(),
       name,
       description: description || undefined,
-      inputs: state.inputs,
+      sections: state.sections,
       complexityCoeff: state.complexityCoeff,
-      materials: state.materials.length > 0 ? state.materials : undefined,
-      extraCosts: state.extraCosts.length > 0 ? state.extraCosts : undefined,
-      manualWorks: state.manualWorks.length > 0 ? state.manualWorks : undefined,
+      // backward compat flat fields
+      inputs: state.sections.flatMap((s) => s.catalogItems),
+      manualWorks: state.sections.flatMap((s) => s.manualItems),
+      materials: state.sections.flatMap((s) => s.materials),
+      extraCosts: state.sections.flatMap((s) => s.extraItems),
       isBuiltIn: false,
       createdAt: new Date().toISOString(),
     };
@@ -351,29 +304,8 @@ export default function HomePage() {
 
   const { summary } = estimate;
   const hasContent = summary.baseTotal > 0;
-
-  // Zero-price analysis
-  const zeroWarnings = getZeroWarnings(estimate, state.inputs, state.manualWorks, state.materials, state.extraCosts);
+  const zeroWarnings = getZeroWarnings(estimate);
   const hasZeroWarnings = zeroWarnings.length > 0;
-
-  // Sets for visual row marking
-  const zeroWorkIndices = new Set(
-    state.inputs.flatMap((input, i) => {
-      if (input.quantity <= 0) return [];
-      const line = estimate.lines.find((l) => l.category === input.category);
-      if (!line || line.unitPrice === 0) return [i];
-      return [];
-    })
-  );
-  const zeroManualIds = new Set(
-    state.manualWorks.filter((m) => m.title.trim() && m.subtotal === 0).map((m) => m.id)
-  );
-  const zeroMaterialIds = new Set(
-    state.materials.filter((m) => m.title.trim() && m.subtotal === 0).map((m) => m.id)
-  );
-  const zeroExtraCostIds = new Set(
-    state.extraCosts.filter((e) => e.title.trim() && e.amount === 0).map((e) => e.id)
-  );
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -462,79 +394,47 @@ export default function HomePage() {
               />
             </section>
 
-            {/* Работы */}
-            <section className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
-              <h2 className="font-semibold text-gray-800">Работы</h2>
-              {state.inputs.map((input, i) => (
-                <WorkRow key={i} input={input} categories={catalog.works}
-                  isZero={zeroWorkIndices.has(i)}
-                  onChange={(v) => dispatch({ type: "SET_INPUT", index: i, value: v })}
-                  onRemove={() => dispatch({ type: "REMOVE_ROW", index: i })}
-                />
-              ))}
-              {state.manualWorks.map((line, i) => (
-                <ManualLineRow key={line.id} line={line} titlePlaceholder="Наименование работы"
-                  isZero={zeroManualIds.has(line.id)}
-                  onChange={(v) => dispatch({ type: "SET_MANUAL_WORK", index: i, value: v })}
-                  onRemove={() => dispatch({ type: "REMOVE_MANUAL_WORK", index: i })}
-                />
-              ))}
-              <div className="flex gap-2">
-                <button onClick={() => dispatch({ type: "ADD_ROW", category: defaultCategory })}
-                  className="flex-1 border-2 border-dashed border-gray-300 rounded-lg py-2 text-sm text-gray-500 hover:border-green-400 hover:text-green-600 transition-colors">
-                  + Из каталога
-                </button>
-                <button onClick={() => dispatch({ type: "ADD_MANUAL_WORK" })}
-                  className="flex-1 border-2 border-dashed border-amber-300 rounded-lg py-2 text-sm text-amber-600 hover:border-amber-400 hover:text-amber-700 transition-colors">
-                  + Ручная строка
-                </button>
-              </div>
-            </section>
+            {/* Разделы */}
+            {state.sections.map((section) => (
+              <SectionPanel
+                key={section.id}
+                section={section}
+                catalog={catalog}
+                extraSuggestions={extraSuggestions}
+                onChange={(updated) => dispatch({ type: "SET_SECTION", id: section.id, value: updated })}
+                onRemove={() => dispatch({ type: "REMOVE_SECTION", id: section.id })}
+                canRemove={state.sections.length > 1}
+              />
+            ))}
 
-            {/* Материалы */}
-            <section className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
-              <h2 className="font-semibold text-gray-800">Материалы</h2>
-              {state.materials.length === 0 && (
-                <p className="text-sm text-gray-400">Начните вводить название — появятся подсказки с ценами</p>
-              )}
-              {state.materials.map((m, i) => (
-                <MaterialRow key={m.id} material={m} presets={catalog.materials}
-                  isZero={zeroMaterialIds.has(m.id)}
-                  onChange={(v) => dispatch({ type: "SET_MATERIAL", index: i, value: v })}
-                  onRemove={() => dispatch({ type: "REMOVE_MATERIAL", index: i })}
-                />
-              ))}
-              <button onClick={() => dispatch({ type: "ADD_MATERIAL" })}
-                className="w-full border-2 border-dashed border-gray-300 rounded-lg py-2 text-sm text-gray-500 hover:border-blue-400 hover:text-blue-600 transition-colors">
-                + Добавить материал
+            {/* Добавить раздел */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => dispatch({ type: "ADD_SECTION", sectionType: "standard" })}
+                className="flex-1 border-2 border-dashed border-gray-300 rounded-lg py-2.5 text-sm text-gray-500 hover:border-blue-400 hover:text-blue-600 transition-colors"
+              >
+                + Раздел работ
               </button>
-            </section>
-
-            {/* Доп. расходы */}
-            <section className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
-              <h2 className="font-semibold text-gray-800">Дополнительные расходы</h2>
-              {state.extraCosts.length === 0 && (
-                <p className="text-sm text-gray-400">Доставка, вывоз мусора, аренда техники и другие расходы</p>
-              )}
-              {state.extraCosts.map((cost, i) => (
-                <ExtraCostRow key={cost.id} cost={cost} suggestions={extraSuggestions}
-                  isZero={zeroExtraCostIds.has(cost.id)}
-                  onChange={(v) => dispatch({ type: "SET_EXTRA_COST", index: i, value: v })}
-                  onRemove={() => dispatch({ type: "REMOVE_EXTRA_COST", index: i })}
-                />
-              ))}
-              <button onClick={() => dispatch({ type: "ADD_EXTRA_COST" })}
-                className="w-full border-2 border-dashed border-gray-300 rounded-lg py-2 text-sm text-gray-500 hover:border-orange-400 hover:text-orange-600 transition-colors">
-                + Добавить расход
+              <button
+                onClick={() => dispatch({ type: "ADD_SECTION", sectionType: "extra_costs" })}
+                className="flex-1 border-2 border-dashed border-orange-200 rounded-lg py-2.5 text-sm text-orange-500 hover:border-orange-400 hover:text-orange-600 transition-colors"
+              >
+                + Доп. расходы
               </button>
-            </section>
+              <button
+                onClick={() => dispatch({ type: "ADD_SECTION", sectionType: "org_costs" })}
+                className="flex-1 border-2 border-dashed border-purple-200 rounded-lg py-2.5 text-sm text-purple-500 hover:border-purple-400 hover:text-purple-600 transition-colors"
+              >
+                + Орг. затраты
+              </button>
+            </div>
 
             {/* Коэффициент сложности */}
             <section className="bg-white rounded-xl border border-gray-200 p-4">
               <div className="flex items-center justify-between mb-2">
                 <div>
                   <h2 className="font-semibold text-gray-800">Коэффициент сложности</h2>
-                  <p className="text-xs text-gray-400 mt-0.5">Применяется только к работам</p>
+                  <p className="text-xs text-gray-400 mt-0.5">Применяется только к работам из каталога</p>
                 </div>
                 <span className="text-sm font-medium text-gray-700">×{state.complexityCoeff.toFixed(2)}</span>
               </div>

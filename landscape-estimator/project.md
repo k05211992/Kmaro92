@@ -89,8 +89,8 @@ Catalog            — каталог {works, materials, coefficients, extraCost
 | `landscape_estimator_draft` | Текущий черновик сметы |
 | `landscape_estimator_history` | История сохранённых смет (до 50) |
 | `landscape_templates_v1` | Шаблоны (встроенные + пользовательские) |
-| `landscape_catalog_v1` | Каталог (v1, текущий рабочий) |
-| `landscape_catalog_v2_preview` | Feature flag для catalog v2 (строка `"true"`) |
+| `landscape_catalog_v1` | Каталог (v1, legacy fallback) |
+| `landscape_catalog_v2_rollback` | Откат к v1 ценам (строка `"true"`); при отсутствии — v2 активен |
 
 ---
 
@@ -121,8 +121,7 @@ Catalog v2 — это нормализованный каталог работ �
 - Works: 22/22 resolved (11 canonical + 11 legacy-key, 0 fuzzy, 0 requiresRemap)
 - Materials: 15/15 resolved (7 canonical + 1 manual-remap + 4 legacy + 3 fuzzy, 0 requiresRemap)
 
-**Активация preview:** `localStorage.setItem("landscape_catalog_v2_preview", "true")`
-**UI по умолчанию работает на v1.** Переключение на v2 по умолчанию — следующий шаг.
+**UI по умолчанию работает на v2.** Откат к v1 ценам: `localStorage.setItem("landscape_catalog_v2_rollback", "true")`.
 
 **Regression тест:** `npm run test:catalog-v2` — 12 автоматических проверок, 12/12 PASS.
 
@@ -142,10 +141,8 @@ Catalog v2 — это нормализованный каталог работ �
 
 ## Ближайшие шаги
 
-1. Пройти ручной browser-чеклист из `data/catalog-v2/preview-regression-report.json` (10 сценариев)
-2. Переключить основной UI на catalog v2 по умолчанию
-3. Убрать или заархивировать `src/config/pricing.json` и `src/config/materials.json` как legacy
-4. Обновить страницу `/catalog` для работы с v2-структурой (RWORK/RMAT IDs)
+1. Убрать или заархивировать `src/config/pricing.json` и `src/config/materials.json` как legacy
+2. Обновить страницу `/catalog` для работы с v2-структурой (RWORK/RMAT IDs)
 
 ---
 

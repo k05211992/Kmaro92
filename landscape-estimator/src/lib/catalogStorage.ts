@@ -1,57 +1,102 @@
 import type { Catalog, CatalogCategory, CatalogMaterial, CatalogCoefficient, CatalogExtraCostPreset } from "@/types";
-import workMasterDataRaw from "../../data/catalog-v2/work-master.json";
-import materialMasterDataRaw from "../../data/catalog-v2/material-master.json";
+import pricingJson from "@/config/pricing.json";
+import materialsJson from "@/config/materials.json";
+import { isCatalogV2Active } from "@/lib/catalogV2/featureFlag";
+import { V1_WORK_CANONICAL_MAP, V1_MATERIAL_CANONICAL_MAP } from "@/lib/catalogV2/canonicalMap";
+import workVariantsDataRaw from "../../data/catalog-v2/work-variants.json";
+import materialVariantsDataRaw from "../../data/catalog-v2/material-variants.json";
+import workMasterRaw from "../../data/catalog-v2/work-master.json";
+import materialMasterRaw from "../../data/catalog-v2/material-master.json";
 
 // ─── Storage keys ─────────────────────────────────────────────────────────────
 
-const CATALOG_KEY = "landscape_catalog_v2";
+/** Legacy v1 key — never touched when v2 is active (safe rollback source). */
+const CATALOG_KEY_V1 = "landscape_catalog_v1";
+/** v2 key — stores user edits made while v2 is active. */
+const CATALOG_KEY_V2 = "landscape_catalog_v2";
+
+// ─── V2 price lookup ──────────────────────────────────────────────────────────
+
+interface WorkVariant {
+  id: string;
+  workId: string;
+  effectiveUnitPrice: number;
+  isDefault: boolean;
+  isActive: boolean;
+}
+
+interface MaterialVariant {
+  id: string;
+  materialId: string;
+  pricePerUnit: number | null;
+  isDefault: boolean;
+  isActive: boolean;
+}
+
+const v2WorkVariants = workVariantsDataRaw as unknown as WorkVariant[];
+const v2MaterialVariants = materialVariantsDataRaw as unknown as MaterialVariant[];
+
+function getV2WorkPrice(v2WorkId: string): number | null {
+  const variant =
+    v2WorkVariants.find((v) => v.workId === v2WorkId && v.isDefault && v.isActive) ??
+    v2WorkVariants.find((v) => v.workId === v2WorkId && v.isActive);
+  if (!variant || variant.effectiveUnitPrice <= 0) return null;
+  return variant.effectiveUnitPrice;
+}
+
+function getV2MaterialPrice(v2MaterialId: string): number | null {
+  const variant =
+    v2MaterialVariants.find((v) => v.materialId === v2MaterialId && v.isDefault && v.isActive) ??
+    v2MaterialVariants.find((v) => v.materialId === v2MaterialId && v.isActive);
+  if (!variant || variant.pricePerUnit == null || variant.pricePerUnit <= 0) return null;
+  return variant.pricePerUnit;
+}
 
 // ─── Master file types ────────────────────────────────────────────────────────
 
 interface WorkMasterEntry {
-  id: string;
+  id: string;          // RWORK-0001 …
   label: string;
-  section: string;
+  section: string;     // Мощение / Газон / …
+  subsection: string;
   unit: string;
+  positionType: string;
   basePrice: number;
+  keywords: string;
 }
 
 interface MaterialMasterEntry {
-  id: string;
+  id: string;          // RMAT-0001 …
   label: string;
   section: string;
+  subsection: string;
   unit: string;
+  materialType: string;
+  baseReserveCoeff: number;
   defaultPrice: number;
 }
 
-const workMaster = workMasterDataRaw as WorkMasterEntry[];
-const materialMaster = materialMasterDataRaw as MaterialMasterEntry[];
+// ─── Seed builders ────────────────────────────────────────────────────────────
 
-// ─── Seed builder ─────────────────────────────────────────────────────────────
-
-function buildSeedCatalog(): Catalog {
-  const works: CatalogCategory[] = workMaster.map((w) => ({
-    id: w.id,
-    label: w.label,
-    unit: w.unit,
-    section: w.section,
+function buildV1SeedCatalog(): Catalog {
+  const works: CatalogCategory[] = (pricingJson as any[]).map((cat) => ({
+    id: cat.id,
+    label: cat.label,
+    unit: cat.unit,
     active: true,
-    variants: [
-      {
-        id: w.id,
-        label: w.label,
-        unitPrice: w.basePrice,
-        active: true,
-      },
-    ],
+    variants: cat.variants.map((v: any) => ({
+      id: v.id,
+      label: v.label,
+      unitPrice: v.unitPrice,
+      active: true,
+    })),
   }));
 
-  const materials: CatalogMaterial[] = materialMaster.map((m) => ({
-    id: m.id,
-    title: m.label,
+  const materials: CatalogMaterial[] = (materialsJson as any[]).map((m, i) => ({
+    id: `mat_${i}_${m.title.slice(0, 8).replace(/\s/g, "")}`,
+    title: m.title,
     unit: m.unit,
     defaultPrice: m.defaultPrice,
-    section: m.section,
     active: true,
   }));
 
@@ -77,6 +122,81 @@ function buildSeedCatalog(): Catalog {
   return { works, materials, coefficients, extraCostPresets };
 }
 
+function buildV2SeedCatalog(): Catalog {
+  const v1 = buildV1SeedCatalog();
+
+  // ── 1. V1 работы с обновлёнными ценами из V2 (canonicalMap) ──────────────
+  const v1Works: CatalogCategory[] = v1.works.map((cat) => ({
+    ...cat,
+    variants: cat.variants.map((variant) => {
+      const pairKey = `${cat.id}:${variant.id}`;
+      const entry = V1_WORK_CANONICAL_MAP[pairKey] ?? V1_WORK_CANONICAL_MAP[cat.id];
+      if (entry) {
+        const v2Price = getV2WorkPrice(entry.v2WorkId);
+        if (v2Price !== null) return { ...variant, unitPrice: v2Price };
+      }
+      return variant;
+    }),
+  }));
+
+  // ── 2. Все реальные работы из прайса (RWORK-*) ───────────────────────────
+  const v2Works: CatalogCategory[] = (workMasterRaw as WorkMasterEntry[])
+    .filter((w) => w.basePrice > 0 || getV2WorkPrice(w.id) !== null)
+    .map((w) => {
+      const price = getV2WorkPrice(w.id) ?? w.basePrice;
+      return {
+        id: w.id,
+        label: w.label,
+        unit: w.unit,
+        // Передаём section и subsection — WorkRow использует их для группировки
+        section: w.section,
+        subsection: w.subsection,
+        active: true,
+        variants: [
+          {
+            id: w.id + "_v",   // стабильный variantId
+            label: w.label,
+            unitPrice: price,
+            active: true,
+          },
+        ],
+      } as CatalogCategory & { section: string; subsection: string };
+    });
+
+  // V2 работы идут первыми — они приоритетны в поиске
+  const works = [...v2Works, ...v1Works];
+
+  // ── 3. V1 материалы с обновлёнными ценами ────────────────────────────────
+  const v1Materials: CatalogMaterial[] = v1.materials.map((mat) => {
+    const normKey = mat.title.toLowerCase().trim();
+    const entry = V1_MATERIAL_CANONICAL_MAP[normKey];
+    if (entry) {
+      const v2Price = getV2MaterialPrice(entry.v2MaterialId);
+      if (v2Price !== null) return { ...mat, defaultPrice: v2Price };
+    }
+    return mat;
+  });
+
+  // ── 4. Все реальные материалы из прайса (RMAT-*) ─────────────────────────
+  const v2Materials: CatalogMaterial[] = (materialMasterRaw as MaterialMasterEntry[])
+    .filter((m) => m.defaultPrice > 0)
+    .map((m) => ({
+      id: m.id,
+      title: m.label,
+      unit: m.unit,
+      defaultPrice: m.defaultPrice,
+      // Передаём section — MaterialRow использует для группировки
+      section: m.section,
+      subsection: m.subsection,
+      active: true,
+    } as CatalogMaterial & { section: string; subsection: string }));
+
+  // V2 материалы первыми
+  const materials = [...v2Materials, ...v1Materials];
+
+  return { ...v1, works, materials };
+}
+
 // ─── Public API ───────────────────────────────────────────────────────────────
 
 /**
@@ -85,32 +205,35 @@ function buildSeedCatalog(): Catalog {
  * After mount, call getCatalog() to pick up localStorage overrides.
  */
 export function getDefaultCatalog(): Catalog {
-  return buildSeedCatalog();
+  return buildV2SeedCatalog();
 }
 
 export function getCatalog(): Catalog {
   if (typeof window === "undefined") {
-    return buildSeedCatalog();
+    return isCatalogV2Active() ? buildV2SeedCatalog() : buildV1SeedCatalog();
   }
+
+  const activeKey = isCatalogV2Active() ? CATALOG_KEY_V2 : CATALOG_KEY_V1;
   try {
-    const raw = localStorage.getItem(CATALOG_KEY);
+    const raw = localStorage.getItem(activeKey);
     if (raw) return JSON.parse(raw) as Catalog;
   } catch {
     /* ignore */
   }
-  return buildSeedCatalog();
+  return isCatalogV2Active() ? buildV2SeedCatalog() : buildV1SeedCatalog();
 }
 
 export function saveCatalog(catalog: Catalog): void {
+  const activeKey = isCatalogV2Active() ? CATALOG_KEY_V2 : CATALOG_KEY_V1;
   try {
-    localStorage.setItem(CATALOG_KEY, JSON.stringify(catalog));
+    localStorage.setItem(activeKey, JSON.stringify(catalog));
   } catch {
     /* ignore */
   }
 }
 
 export function resetCatalog(): Catalog {
-  const seed = buildSeedCatalog();
+  const seed = isCatalogV2Active() ? buildV2SeedCatalog() : buildV1SeedCatalog();
   saveCatalog(seed);
   return seed;
 }
@@ -130,8 +253,8 @@ export function exportCatalogJSON(catalog: Catalog): void {
 
 export type PriceSourceEntry = {
   type: "v2" | "v1_fallback";
-  id: string;
-  seedPrice: number;
+  id: string;        // RWORK-* / RMAT-* или "v1"
+  seedPrice: number; // цена из seed — для детекции ручного изменения
 };
 
 export type PriceSourceMap = {
@@ -140,18 +263,53 @@ export type PriceSourceMap = {
 };
 
 /**
- * Returns the price source for each catalog entry.
- * All entries from the master catalog are type "v2".
+ * Возвращает фактический источник цены для каждой позиции seed-каталога.
+ * Прогоняет ту же логику, что buildV2SeedCatalog():
+ *   canonical map + getV2WorkPrice / getV2MaterialPrice.
+ * Не читает localStorage. Не меняет никакого состояния.
  */
 export function getPriceSourceMap(): PriceSourceMap {
+  const v1 = buildV1SeedCatalog();
   const works: Record<string, PriceSourceEntry> = {};
   const materials: Record<string, PriceSourceEntry> = {};
 
-  for (const w of workMaster) {
-    works[`${w.id}:${w.id}`] = { type: "v2", id: w.id, seedPrice: w.basePrice };
+  for (const cat of v1.works) {
+    for (const variant of cat.variants) {
+      const pairKey = `${cat.id}:${variant.id}`;
+      const entry = V1_WORK_CANONICAL_MAP[pairKey] ?? V1_WORK_CANONICAL_MAP[cat.id];
+      if (entry) {
+        const v2Price = getV2WorkPrice(entry.v2WorkId);
+        if (v2Price !== null) {
+          works[pairKey] = { type: "v2", id: entry.v2WorkId, seedPrice: v2Price };
+          continue;
+        }
+      }
+      works[pairKey] = { type: "v1_fallback", id: "v1", seedPrice: variant.unitPrice };
+    }
   }
 
-  for (const m of materialMaster) {
+  // V2 master works
+  for (const w of workMasterRaw as WorkMasterEntry[]) {
+    const pairKey = `${w.id}:${w.id}_v`;
+    const price = getV2WorkPrice(w.id) ?? w.basePrice;
+    works[pairKey] = { type: "v2", id: w.id, seedPrice: price };
+  }
+
+  for (const mat of v1.materials) {
+    const normKey = mat.title.toLowerCase().trim();
+    const entry = V1_MATERIAL_CANONICAL_MAP[normKey];
+    if (entry) {
+      const v2Price = getV2MaterialPrice(entry.v2MaterialId);
+      if (v2Price !== null) {
+        materials[mat.id] = { type: "v2", id: entry.v2MaterialId, seedPrice: v2Price };
+        continue;
+      }
+    }
+    materials[mat.id] = { type: "v1_fallback", id: "v1", seedPrice: mat.defaultPrice };
+  }
+
+  // V2 master materials
+  for (const m of materialMasterRaw as MaterialMasterEntry[]) {
     materials[m.id] = { type: "v2", id: m.id, seedPrice: m.defaultPrice };
   }
 

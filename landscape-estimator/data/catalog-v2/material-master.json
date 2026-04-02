@@ -1,0 +1,1272 @@
+[
+  {
+    "id": "RMAT-0001",
+    "label": "Амфиболит колотый 50*100*100мм",
+    "section": "Мощение",
+    "subsection": "Покрытие",
+    "unit": "м2",
+    "materialType": "Покрытие",
+    "baseReserveCoeff": 1.05,
+    "defaultPrice": 3480.0
+  },
+  {
+    "id": "RMAT-0002",
+    "label": "Анкер крепящий для ландшафтного бордюра (количество для установки по дуге 5шт. на 1м.п.)",
+    "section": "Газон",
+    "subsection": "Бордюры и ограничения",
+    "unit": "шт",
+    "materialType": "Бортовой элемент",
+    "baseReserveCoeff": 1.1,
+    "defaultPrice": 48.0
+  },
+  {
+    "id": "RMAT-0003",
+    "label": "Антисептик Pinotex Base",
+    "section": "Мощение",
+    "subsection": "Конструкции и отделка",
+    "unit": "л",
+    "materialType": "Прочий материал",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 580.0
+  },
+  {
+    "id": "RMAT-0004",
+    "label": "арматура рифленая, 10мм",
+    "section": "Мощение",
+    "subsection": "Прочее по мощению",
+    "unit": "м.пог.",
+    "materialType": "Прочий материал",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 63.0
+  },
+  {
+    "id": "RMAT-0005",
+    "label": "Арматура рифленая, 12мм",
+    "section": "Мощение",
+    "subsection": "Прочее по мощению",
+    "unit": "м.пог.",
+    "materialType": "Прочий материал",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 85.0
+  },
+  {
+    "id": "RMAT-0006",
+    "label": "Бетон, миксер",
+    "section": "Ступени / пандусы / бетонные элементы",
+    "subsection": "Бетон и армирование",
+    "unit": "м3",
+    "materialType": "Сыпучий / объёмный",
+    "baseReserveCoeff": 1.08,
+    "defaultPrice": 15000.0
+  },
+  {
+    "id": "RMAT-0007",
+    "label": "Блок питания 100Вт",
+    "section": "Освещение",
+    "subsection": "Оборудование и комплектующие",
+    "unit": "шт",
+    "materialType": "Штучный материал",
+    "baseReserveCoeff": 1.05,
+    "defaultPrice": 6000.0
+  },
+  {
+    "id": "RMAT-0008",
+    "label": "Бордюр металлический",
+    "section": "Мощение",
+    "subsection": "Бордюры и ограничения",
+    "unit": "м.пог.",
+    "materialType": "Бортовой элемент",
+    "baseReserveCoeff": 1.1,
+    "defaultPrice": 0.0
+  },
+  {
+    "id": "RMAT-0009",
+    "label": "Бордюр пластиковый Plastbort с крепежом",
+    "section": "Мощение",
+    "subsection": "Бордюры и ограничения",
+    "unit": "м.пог.",
+    "materialType": "Бортовой элемент",
+    "baseReserveCoeff": 1.1,
+    "defaultPrice": 320.0
+  },
+  {
+    "id": "RMAT-0010",
+    "label": "Бордюр пластиковый, 100х8х4.5см",
+    "section": "Газон",
+    "subsection": "Бордюры и ограничения",
+    "unit": "м.пог.",
+    "materialType": "Бортовой элемент",
+    "baseReserveCoeff": 1.1,
+    "defaultPrice": 430.0
+  },
+  {
+    "id": "RMAT-0011",
+    "label": "Брус 50х50х3000мм",
+    "section": "Ступени / пандусы / бетонные элементы",
+    "subsection": "Прочее по бетонным элементам",
+    "unit": "шт",
+    "materialType": "Погонаж / дерево",
+    "baseReserveCoeff": 1.1,
+    "defaultPrice": 280.0
+  },
+  {
+    "id": "RMAT-0012",
+    "label": "Брусок сухой сосна 30х45х3000 мм сорт АВ",
+    "section": "Мощение",
+    "subsection": "Конструкции и отделка",
+    "unit": "шт",
+    "materialType": "Погонаж / дерево",
+    "baseReserveCoeff": 1.1,
+    "defaultPrice": 245.0
+  },
+  {
+    "id": "RMAT-0013",
+    "label": "Брусчатка гранитная, 100х100х100мм",
+    "section": "Мощение",
+    "subsection": "Покрытие",
+    "unit": "м2",
+    "materialType": "Покрытие",
+    "baseReserveCoeff": 1.05,
+    "defaultPrice": 2500.0
+  },
+  {
+    "id": "RMAT-0014",
+    "label": "Брусчатка гранитная, 100х100х50мм",
+    "section": "Мощение",
+    "subsection": "Покрытие",
+    "unit": "м2",
+    "materialType": "Покрытие",
+    "baseReserveCoeff": 1.05,
+    "defaultPrice": 2300.0
+  },
+  {
+    "id": "RMAT-0015",
+    "label": "Брусчатка пиленная, шунгитный сланец",
+    "section": "Мощение",
+    "subsection": "Покрытие",
+    "unit": "м2",
+    "materialType": "Покрытие",
+    "baseReserveCoeff": 1.05,
+    "defaultPrice": 4730.0
+  },
+  {
+    "id": "RMAT-0016",
+    "label": "Брусчатка пилено-колотая, гранит 100х100х50мм",
+    "section": "Мощение",
+    "subsection": "Покрытие",
+    "unit": "м2",
+    "materialType": "Покрытие",
+    "baseReserveCoeff": 1.05,
+    "defaultPrice": 4630.0
+  },
+  {
+    "id": "RMAT-0017",
+    "label": "Брусчатка ТБП (простая), 60мм",
+    "section": "Мощение",
+    "subsection": "Покрытие",
+    "unit": "м2",
+    "materialType": "Покрытие",
+    "baseReserveCoeff": 1.05,
+    "defaultPrice": 840.0
+  },
+  {
+    "id": "RMAT-0018",
+    "label": "Брусчатка ТБП Антик, 197x97x60мм",
+    "section": "Мощение",
+    "subsection": "Покрытие",
+    "unit": "м2",
+    "materialType": "Покрытие",
+    "baseReserveCoeff": 1.05,
+    "defaultPrice": 1100.0
+  },
+  {
+    "id": "RMAT-0019",
+    "label": "Брусчатка ТБП Классико Б.3.КО.6",
+    "section": "Мощение",
+    "subsection": "Покрытие",
+    "unit": "м2",
+    "materialType": "Покрытие",
+    "baseReserveCoeff": 1.05,
+    "defaultPrice": 3025.0
+  },
+  {
+    "id": "RMAT-0020",
+    "label": "Габбро-диабаз 100*80*50мм",
+    "section": "Мощение",
+    "subsection": "Покрытие",
+    "unit": "м2",
+    "materialType": "Покрытие",
+    "baseReserveCoeff": 1.05,
+    "defaultPrice": 3850.0
+  },
+  {
+    "id": "RMAT-0021",
+    "label": "Габбро-диабаз 80*80*80мм",
+    "section": "Мощение",
+    "subsection": "Покрытие",
+    "unit": "м2",
+    "materialType": "Покрытие",
+    "baseReserveCoeff": 1.05,
+    "defaultPrice": 4620.0
+  },
+  {
+    "id": "RMAT-0022",
+    "label": "Газон рулонный \"Универсальный\", 0.8м.кв.",
+    "section": "Газон",
+    "subsection": "Газон и укладка",
+    "unit": "рул.",
+    "materialType": "Рулонный материал",
+    "baseReserveCoeff": 1.1,
+    "defaultPrice": 330.0
+  },
+  {
+    "id": "RMAT-0023",
+    "label": "Газон рулонный бюджетный, 0.8м.кв.",
+    "section": "Мощение",
+    "subsection": "Прочее по мощению",
+    "unit": "рул.",
+    "materialType": "Рулонный материал",
+    "baseReserveCoeff": 1.1,
+    "defaultPrice": 115.0
+  },
+  {
+    "id": "RMAT-0024",
+    "label": "Газон рулонный бюджетный, 1м.кв.",
+    "section": "Мощение",
+    "subsection": "Прочее по мощению",
+    "unit": "рул.",
+    "materialType": "Рулонный материал",
+    "baseReserveCoeff": 1.1,
+    "defaultPrice": 145.0
+  },
+  {
+    "id": "RMAT-0025",
+    "label": "Геотекстиль, 200г/м2",
+    "section": "Мощение",
+    "subsection": "Основание",
+    "unit": "м2",
+    "materialType": "Сетка / текстиль",
+    "baseReserveCoeff": 1.1,
+    "defaultPrice": 75.0
+  },
+  {
+    "id": "RMAT-0026",
+    "label": "Геотекстиль, 300г/м2",
+    "section": "Мощение",
+    "subsection": "Основание",
+    "unit": "м2",
+    "materialType": "Сетка / текстиль",
+    "baseReserveCoeff": 1.1,
+    "defaultPrice": 105.0
+  },
+  {
+    "id": "RMAT-0027",
+    "label": "Герметик",
+    "section": "Дренаж",
+    "subsection": "Материалы и комплектующие",
+    "unit": "шт",
+    "materialType": "Штучный материал",
+    "baseReserveCoeff": 1.05,
+    "defaultPrice": 650.0
+  },
+  {
+    "id": "RMAT-0028",
+    "label": "Гидроизоляция гряд и стенок фундамента теплицы",
+    "section": "Мощение",
+    "subsection": "Конструкции и отделка",
+    "unit": "м.пог.",
+    "materialType": "Прочий материал",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 150.0
+  },
+  {
+    "id": "RMAT-0029",
+    "label": "Гравий (щебень гр. 20-40мм)",
+    "section": "Мощение",
+    "subsection": "Основание",
+    "unit": "м3",
+    "materialType": "Сыпучий / объёмный",
+    "baseReserveCoeff": 1.08,
+    "defaultPrice": 1880.0
+  },
+  {
+    "id": "RMAT-0030",
+    "label": "Гравий карьерный 5-20мм",
+    "section": "Мощение",
+    "subsection": "Основание",
+    "unit": "м3",
+    "materialType": "Прочий материал",
+    "baseReserveCoeff": 1.08,
+    "defaultPrice": 8000.0
+  },
+  {
+    "id": "RMAT-0031",
+    "label": "Гравий колотый",
+    "section": "Мощение",
+    "subsection": "Основание",
+    "unit": "т",
+    "materialType": "Прочий материал",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 18700.0
+  },
+  {
+    "id": "RMAT-0032",
+    "label": "Грунт дерновый /просеивание местного грунта",
+    "section": "Мощение",
+    "subsection": "Прочее по мощению",
+    "unit": "м3",
+    "materialType": "Сыпучий / объёмный",
+    "baseReserveCoeff": 1.08,
+    "defaultPrice": 1200.0
+  },
+  {
+    "id": "RMAT-0033",
+    "label": "Грунт плодородный",
+    "section": "Земляные и планировочные работы",
+    "subsection": "Материалы",
+    "unit": "м3",
+    "materialType": "Сыпучий / объёмный",
+    "baseReserveCoeff": 1.08,
+    "defaultPrice": 2300.0
+  },
+  {
+    "id": "RMAT-0034",
+    "label": "Грунтовка концентрат",
+    "section": "Мощение",
+    "subsection": "Прочее по мощению",
+    "unit": "л",
+    "materialType": "Сыпучий / объёмный",
+    "baseReserveCoeff": 1.08,
+    "defaultPrice": 400.0
+  },
+  {
+    "id": "RMAT-0035",
+    "label": "Диск алмазный по камню d=230ммхМ14 (гранит)",
+    "section": "Мощение",
+    "subsection": "Конструкции и отделка",
+    "unit": "шт",
+    "materialType": "Штучный материал",
+    "baseReserveCoeff": 1.05,
+    "defaultPrice": 5700.0
+  },
+  {
+    "id": "RMAT-0036",
+    "label": "Диск по металлу",
+    "section": "Мощение",
+    "subsection": "Конструкции и отделка",
+    "unit": "шт",
+    "materialType": "Штучный материал",
+    "baseReserveCoeff": 1.05,
+    "defaultPrice": 72.0
+  },
+  {
+    "id": "RMAT-0037",
+    "label": "Дождеприемник ДП–30.30-ПП с комплектующими и чугунной решеткой, фасонные элементы",
+    "section": "Ливневая канализация",
+    "subsection": "Приемные и линейные элементы",
+    "unit": "шт",
+    "materialType": "Инженерный материал",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 3300.0
+  },
+  {
+    "id": "RMAT-0038",
+    "label": "Дождеприемник пластик. 300х300х300 мм в сборе с решеткой чугунной",
+    "section": "Мощение",
+    "subsection": "Водоотвод в зоне мощения",
+    "unit": "шт",
+    "materialType": "Инженерный материал",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 1400.0
+  },
+  {
+    "id": "RMAT-0039",
+    "label": "доска для опалубки, 25*100*3000мм",
+    "section": "Мощение",
+    "subsection": "Конструкции и отделка",
+    "unit": "м.пог.",
+    "materialType": "Погонаж / дерево",
+    "baseReserveCoeff": 1.1,
+    "defaultPrice": 70.0
+  },
+  {
+    "id": "RMAT-0040",
+    "label": "Доска импрегнированная 45*145*6000мм, строганая",
+    "section": "Мощение",
+    "subsection": "Конструкции и отделка",
+    "unit": "шт",
+    "materialType": "Погонаж / дерево",
+    "baseReserveCoeff": 1.1,
+    "defaultPrice": 1680.0
+  },
+  {
+    "id": "RMAT-0041",
+    "label": "Доска импрегнированная 50*100*6000мм, обрезная",
+    "section": "Мощение",
+    "subsection": "Конструкции и отделка",
+    "unit": "шт",
+    "materialType": "Погонаж / дерево",
+    "baseReserveCoeff": 1.1,
+    "defaultPrice": 1025.0
+  },
+  {
+    "id": "RMAT-0042",
+    "label": "Доска обрезн., сосна, 20х125х3000мм",
+    "section": "Мощение",
+    "subsection": "Конструкции и отделка",
+    "unit": "шт",
+    "materialType": "Погонаж / дерево",
+    "baseReserveCoeff": 1.1,
+    "defaultPrice": 410.0
+  },
+  {
+    "id": "RMAT-0043",
+    "label": "Доска обрезн., сосна, 20х145х3000мм",
+    "section": "Мощение",
+    "subsection": "Конструкции и отделка",
+    "unit": "шт",
+    "materialType": "Погонаж / дерево",
+    "baseReserveCoeff": 1.1,
+    "defaultPrice": 560.0
+  },
+  {
+    "id": "RMAT-0044",
+    "label": "Доска террасная негофрированная, термообработанная сосна 145*28*6000мм",
+    "section": "Мощение",
+    "subsection": "Конструкции и отделка",
+    "unit": "шт",
+    "materialType": "Погонаж / дерево",
+    "baseReserveCoeff": 1.1,
+    "defaultPrice": 1465.0
+  },
+  {
+    "id": "RMAT-0045",
+    "label": "Доска хвойная сырая, нестроганая 150*25*6000мм (для опалубки)",
+    "section": "Дренаж",
+    "subsection": "Материалы и комплектующие",
+    "unit": "шт",
+    "materialType": "Погонаж / дерево",
+    "baseReserveCoeff": 1.1,
+    "defaultPrice": 570.0
+  },
+  {
+    "id": "RMAT-0046",
+    "label": "Дюбель-гвоздь 8x100мм",
+    "section": "Мощение",
+    "subsection": "Прочее по мощению",
+    "unit": "уп.",
+    "materialType": "Прочий материал",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 2300.0
+  },
+  {
+    "id": "RMAT-0047",
+    "label": "Затирка для широких швов Camonica, 25кг",
+    "section": "Мощение",
+    "subsection": "Прочее по мощению",
+    "unit": "шт",
+    "materialType": "Штучный материал",
+    "baseReserveCoeff": 1.05,
+    "defaultPrice": 1420.0
+  },
+  {
+    "id": "RMAT-0048",
+    "label": "Кабель силовой ВБШв нг(А)LS 3*1,5 0,66кВ броня",
+    "section": "Освещение",
+    "subsection": "Кабельная инфраструктура",
+    "unit": "шт",
+    "materialType": "Инженерный материал",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 170.0
+  },
+  {
+    "id": "RMAT-0049",
+    "label": "Кабель силовой ВБШв нг(А)LS 3*2,5 0,66кВ броня",
+    "section": "Освещение",
+    "subsection": "Кабельная инфраструктура",
+    "unit": "шт",
+    "materialType": "Инженерный материал",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 190.0
+  },
+  {
+    "id": "RMAT-0050",
+    "label": "Клей по дереву, 0,5л",
+    "section": "Мощение",
+    "subsection": "Конструкции и отделка",
+    "unit": "шт",
+    "materialType": "Штучный материал",
+    "baseReserveCoeff": 1.05,
+    "defaultPrice": 340.0
+  },
+  {
+    "id": "RMAT-0051",
+    "label": "Колодец дренажный смотровой 315/276х1000 с дном и крышкой",
+    "section": "Дренаж",
+    "subsection": "Колодцы",
+    "unit": "шт",
+    "materialType": "Инженерный материал",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 1520.0
+  },
+  {
+    "id": "RMAT-0052",
+    "label": "Колодец дренажный смотровой 315/276х1500 с дном и крышкой",
+    "section": "Дренаж",
+    "subsection": "Колодцы",
+    "unit": "шт",
+    "materialType": "Инженерный материал",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 2070.0
+  },
+  {
+    "id": "RMAT-0053",
+    "label": "Колодец дренажный смотровой 460/400х2000мм с дном и крышкой",
+    "section": "Дренаж",
+    "subsection": "Колодцы",
+    "unit": "шт",
+    "materialType": "Инженерный материал",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 5400.0
+  },
+  {
+    "id": "RMAT-0054",
+    "label": "Кольцо железобетонное паз/гребень КС10.9 d1000мм",
+    "section": "Ливневая канализация",
+    "subsection": "Колодцы и перекрытия",
+    "unit": "шт",
+    "materialType": "Сыпучий / объёмный",
+    "baseReserveCoeff": 1.08,
+    "defaultPrice": 5566.0
+  },
+  {
+    "id": "RMAT-0055",
+    "label": "Кольцо железобетонное регулировочное КО-6 d840мм",
+    "section": "Ливневая канализация",
+    "subsection": "Колодцы и перекрытия",
+    "unit": "шт",
+    "materialType": "Сыпучий / объёмный",
+    "baseReserveCoeff": 1.08,
+    "defaultPrice": 810.0
+  },
+  {
+    "id": "RMAT-0056",
+    "label": "Кольцо железобетонное с днищем ДК-10.9 d1000мм",
+    "section": "Ливневая канализация",
+    "subsection": "Колодцы и перекрытия",
+    "unit": "шт",
+    "materialType": "Сыпучий / объёмный",
+    "baseReserveCoeff": 1.08,
+    "defaultPrice": 8165.0
+  },
+  {
+    "id": "RMAT-0057",
+    "label": "Короб метал. для подвода кабеля к щиту 100*100мм оцинк., неперфорированный, h=1,5м",
+    "section": "Освещение",
+    "subsection": "Оборудование и комплектующие",
+    "unit": "компл",
+    "materialType": "Прочий материал",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 1000.0
+  },
+  {
+    "id": "RMAT-0058",
+    "label": "Краска Pinotex Extreme One. Колеровка утренний туман 005",
+    "section": "Мощение",
+    "subsection": "Конструкции и отделка",
+    "unit": "л",
+    "materialType": "Прочий материал",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 1300.0
+  },
+  {
+    "id": "RMAT-0059",
+    "label": "Крышка для железобетонного кольца ПП10 d1000мм",
+    "section": "Ливневая канализация",
+    "subsection": "Колодцы и перекрытия",
+    "unit": "шт",
+    "materialType": "Сыпучий / объёмный",
+    "baseReserveCoeff": 1.08,
+    "defaultPrice": 4115.0
+  },
+  {
+    "id": "RMAT-0060",
+    "label": "Лента диодная влагозащищенная, профиль",
+    "section": "Освещение",
+    "subsection": "Оборудование и комплектующие",
+    "unit": "м.пог.",
+    "materialType": "Прочий материал",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 10000.0
+  },
+  {
+    "id": "RMAT-0061",
+    "label": "Лента сигнальная 100м",
+    "section": "Освещение",
+    "subsection": "Кабельная инфраструктура",
+    "unit": "шт",
+    "materialType": "Штучный материал",
+    "baseReserveCoeff": 1.05,
+    "defaultPrice": 1500.0
+  },
+  {
+    "id": "RMAT-0062",
+    "label": "линия подвязки",
+    "section": "Мощение",
+    "subsection": "Прочее по мощению",
+    "unit": "шт",
+    "materialType": "Штучный материал",
+    "baseReserveCoeff": 1.05,
+    "defaultPrice": 4000.0
+  },
+  {
+    "id": "RMAT-0063",
+    "label": "Лоток пластиковый ЛВ-10.16.12-ПП с решетками ячеистыми чугунными",
+    "section": "Ливневая канализация",
+    "subsection": "Приемные и линейные элементы",
+    "unit": "м.пог.",
+    "materialType": "Инженерный материал",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 4010.0
+  },
+  {
+    "id": "RMAT-0064",
+    "label": "Люк садовый пластиковый черный «ДОМИК» d800мм",
+    "section": "Ливневая канализация",
+    "subsection": "Колодцы и перекрытия",
+    "unit": "шт",
+    "materialType": "Инженерный материал",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 3640.0
+  },
+  {
+    "id": "RMAT-0065",
+    "label": "Мастика битумная",
+    "section": "Мощение",
+    "subsection": "Бетон и конструктив",
+    "unit": "кг",
+    "materialType": "Прочий материал",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 330.0
+  },
+  {
+    "id": "RMAT-0066",
+    "label": "Мастика битумная, 20л",
+    "section": "Ливневая канализация",
+    "subsection": "Материалы и комплектующие",
+    "unit": "шт",
+    "materialType": "Штучный материал",
+    "baseReserveCoeff": 1.05,
+    "defaultPrice": 3910.0
+  },
+  {
+    "id": "RMAT-0067",
+    "label": "Материалы для разметки",
+    "section": "Земляные и планировочные работы",
+    "subsection": "Материалы",
+    "unit": "компл",
+    "materialType": "Прочий материал",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 9000.0
+  },
+  {
+    "id": "RMAT-0068",
+    "label": "Метизы",
+    "section": "Мощение",
+    "subsection": "Прочее по мощению",
+    "unit": "кг",
+    "materialType": "Прочий материал",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 2000.0
+  },
+  {
+    "id": "RMAT-0069",
+    "label": "Муфта d110мм для врезки в колодец",
+    "section": "Ливневая канализация",
+    "subsection": "Колодцы и перекрытия",
+    "unit": "шт",
+    "materialType": "Инженерный материал",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 630.0
+  },
+  {
+    "id": "RMAT-0070",
+    "label": "Муфта d160мм для врезки в колодец",
+    "section": "Ливневая канализация",
+    "subsection": "Колодцы и перекрытия",
+    "unit": "шт",
+    "materialType": "Инженерный материал",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 1300.0
+  },
+  {
+    "id": "RMAT-0071",
+    "label": "Опора ландшафтная для установки светильников в бетон",
+    "section": "Освещение",
+    "subsection": "Оборудование и комплектующие",
+    "unit": "шт",
+    "materialType": "Сыпучий / объёмный",
+    "baseReserveCoeff": 1.08,
+    "defaultPrice": 2150.0
+  },
+  {
+    "id": "RMAT-0072",
+    "label": "Отсев гранитный",
+    "section": "Мощение",
+    "subsection": "Основание",
+    "unit": "м3",
+    "materialType": "Сыпучий / объёмный",
+    "baseReserveCoeff": 1.08,
+    "defaultPrice": 3100.0
+  },
+  {
+    "id": "RMAT-0073",
+    "label": "Отсев гранитный 2-5мм",
+    "section": "Мощение",
+    "subsection": "Основание",
+    "unit": "м3",
+    "materialType": "Сыпучий / объёмный",
+    "baseReserveCoeff": 1.08,
+    "defaultPrice": 1500.0
+  },
+  {
+    "id": "RMAT-0074",
+    "label": "Отсев розовый 0-5мм, 50кг",
+    "section": "Дренаж",
+    "subsection": "Материалы и комплектующие",
+    "unit": "шт",
+    "materialType": "Сыпучий / объёмный",
+    "baseReserveCoeff": 1.08,
+    "defaultPrice": 450.0
+  },
+  {
+    "id": "RMAT-0075",
+    "label": "Пескоуловители пластиковые 500х160х420мм с решетками ячеистыми чугунными",
+    "section": "Ливневая канализация",
+    "subsection": "Приемные и линейные элементы",
+    "unit": "шт",
+    "materialType": "Сыпучий / объёмный",
+    "baseReserveCoeff": 1.08,
+    "defaultPrice": 2700.0
+  },
+  {
+    "id": "RMAT-0076",
+    "label": "Песок крупнозернистый намывной",
+    "section": "Газон",
+    "subsection": "Материалы и комплектующие",
+    "unit": "м3",
+    "materialType": "Сыпучий / объёмный",
+    "baseReserveCoeff": 1.08,
+    "defaultPrice": 2600.0
+  },
+  {
+    "id": "RMAT-0077",
+    "label": "Песок мелкий сеяный для швов, 50кг",
+    "section": "Мощение",
+    "subsection": "Основание",
+    "unit": "шт",
+    "materialType": "Сыпучий / объёмный",
+    "baseReserveCoeff": 1.08,
+    "defaultPrice": 399.0
+  },
+  {
+    "id": "RMAT-0078",
+    "label": "Песок строительный, 50кг",
+    "section": "Мощение",
+    "subsection": "Основание",
+    "unit": "шт",
+    "materialType": "Сыпучий / объёмный",
+    "baseReserveCoeff": 1.08,
+    "defaultPrice": 250.0
+  },
+  {
+    "id": "RMAT-0079",
+    "label": "пленка техническая 150мк",
+    "section": "Мощение",
+    "subsection": "Прочее по мощению",
+    "unit": "м2",
+    "materialType": "Сетка / текстиль",
+    "baseReserveCoeff": 1.1,
+    "defaultPrice": 30.0
+  },
+  {
+    "id": "RMAT-0080",
+    "label": "Плита бетонная, 40мм",
+    "section": "Мощение",
+    "subsection": "Покрытие",
+    "unit": "м2",
+    "materialType": "Покрытие",
+    "baseReserveCoeff": 1.08,
+    "defaultPrice": 2500.0
+  },
+  {
+    "id": "RMAT-0081",
+    "label": "Плита бетонная: толщина 50мм, ширина 0,36м, длина от 1 до 1,8м",
+    "section": "Мощение",
+    "subsection": "Покрытие",
+    "unit": "м2",
+    "materialType": "Покрытие",
+    "baseReserveCoeff": 1.08,
+    "defaultPrice": 8500.0
+  },
+  {
+    "id": "RMAT-0082",
+    "label": "Покрытие спортивное (однослойное ударопоглощающее резиновое на однокомпонентном полиуретановом связующем толщиной 15мм )",
+    "section": "Мощение",
+    "subsection": "Покрытие",
+    "unit": "м2",
+    "materialType": "Покрытие",
+    "baseReserveCoeff": 1.05,
+    "defaultPrice": 2200.0
+  },
+  {
+    "id": "RMAT-0083",
+    "label": "Портландцемент М400, 50кг",
+    "section": "Мощение",
+    "subsection": "Бетон и конструктив",
+    "unit": "шт",
+    "materialType": "Сыпучий / объёмный",
+    "baseReserveCoeff": 1.08,
+    "defaultPrice": 605.0
+  },
+  {
+    "id": "RMAT-0084",
+    "label": "Проволока вязальная",
+    "section": "Ступени / пандусы / бетонные элементы",
+    "subsection": "Бетон и армирование",
+    "unit": "шт",
+    "materialType": "Штучный материал",
+    "baseReserveCoeff": 1.05,
+    "defaultPrice": 1100.0
+  },
+  {
+    "id": "RMAT-0085",
+    "label": "Просеивание местного грунта",
+    "section": "Газон",
+    "subsection": "Подготовка основания",
+    "unit": "м3",
+    "materialType": "Сыпучий / объёмный",
+    "baseReserveCoeff": 1.08,
+    "defaultPrice": 1700.0
+  },
+  {
+    "id": "RMAT-0086",
+    "label": "Профиль алюминиевый",
+    "section": "Мощение",
+    "subsection": "Конструкции и отделка",
+    "unit": "компл",
+    "materialType": "Прочий материал",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 131400.0
+  },
+  {
+    "id": "RMAT-0087",
+    "label": "Расходные материалы",
+    "section": "Дренаж",
+    "subsection": "Материалы и комплектующие",
+    "unit": "компл",
+    "materialType": "Прочий материал",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 0.0
+  },
+  {
+    "id": "RMAT-0088",
+    "label": "Ровнитель для бетона Plitonit, 25кг",
+    "section": "Мощение",
+    "subsection": "Бетон и конструктив",
+    "unit": "шт",
+    "materialType": "Сыпучий / объёмный",
+    "baseReserveCoeff": 1.08,
+    "defaultPrice": 645.0
+  },
+  {
+    "id": "RMAT-0089",
+    "label": "Розетка двойная наружная с заземлением с крышкой ФОРС IP54 ERS22-K03-16-54-DC IEK",
+    "section": "Освещение",
+    "subsection": "Оборудование и комплектующие",
+    "unit": "шт",
+    "materialType": "Сыпучий / объёмный",
+    "baseReserveCoeff": 1.08,
+    "defaultPrice": 1100.0
+  },
+  {
+    "id": "RMAT-0090",
+    "label": "Розетка садовая Paulmann Rio 94657, столб с двумя розетками",
+    "section": "Освещение",
+    "subsection": "Оборудование и комплектующие",
+    "unit": "шт",
+    "materialType": "Штучный материал",
+    "baseReserveCoeff": 1.05,
+    "defaultPrice": 7900.0
+  },
+  {
+    "id": "RMAT-0091",
+    "label": "Саморезы нержавеющие, 5см (1500шт.)",
+    "section": "Мощение",
+    "subsection": "Конструкции и отделка",
+    "unit": "уп.",
+    "materialType": "Прочий материал",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 1470.0
+  },
+  {
+    "id": "RMAT-0092",
+    "label": "Саморезы по дереву",
+    "section": "Мощение",
+    "subsection": "Конструкции и отделка",
+    "unit": "уп.",
+    "materialType": "Прочий материал",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 680.0
+  },
+  {
+    "id": "RMAT-0093",
+    "label": "Сверло по дереву 8*100мм",
+    "section": "Мощение",
+    "subsection": "Конструкции и отделка",
+    "unit": "шт",
+    "materialType": "Штучный материал",
+    "baseReserveCoeff": 1.05,
+    "defaultPrice": 540.0
+  },
+  {
+    "id": "RMAT-0094",
+    "label": "Светильник",
+    "section": "Освещение",
+    "subsection": "Оборудование и комплектующие",
+    "unit": "шт",
+    "materialType": "Штучный материал",
+    "baseReserveCoeff": 1.05,
+    "defaultPrice": 12000.0
+  },
+  {
+    "id": "RMAT-0095",
+    "label": "Светильник h=1000",
+    "section": "Освещение",
+    "subsection": "Оборудование и комплектующие",
+    "unit": "шт",
+    "materialType": "Штучный материал",
+    "baseReserveCoeff": 1.05,
+    "defaultPrice": 20000.0
+  },
+  {
+    "id": "RMAT-0096",
+    "label": "Светильник h=600",
+    "section": "Освещение",
+    "subsection": "Оборудование и комплектующие",
+    "unit": "шт",
+    "materialType": "Штучный материал",
+    "baseReserveCoeff": 1.05,
+    "defaultPrice": 18000.0
+  },
+  {
+    "id": "RMAT-0097",
+    "label": "Сетка кладочная яч. 50х50мм d3,5-3,8мм, 0,51х2м",
+    "section": "Мощение",
+    "subsection": "Бетон и конструктив",
+    "unit": "шт",
+    "materialType": "Сетка / текстиль",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 225.0
+  },
+  {
+    "id": "RMAT-0098",
+    "label": "Сланец шунгитный (рваный), 40мм",
+    "section": "Мощение",
+    "subsection": "Покрытие",
+    "unit": "м2",
+    "materialType": "Покрытие",
+    "baseReserveCoeff": 1.05,
+    "defaultPrice": 1600.0
+  },
+  {
+    "id": "RMAT-0099",
+    "label": "Соединитель CON T3 PIN IP68",
+    "section": "Освещение",
+    "subsection": "Оборудование и комплектующие",
+    "unit": "шт",
+    "materialType": "Штучный материал",
+    "baseReserveCoeff": 1.05,
+    "defaultPrice": 2500.0
+  },
+  {
+    "id": "RMAT-0100",
+    "label": "Торф нейтрализованный, 300л",
+    "section": "Земляные и планировочные работы",
+    "subsection": "Материалы",
+    "unit": "кипа",
+    "materialType": "Сыпучий / объёмный",
+    "baseReserveCoeff": 1.08,
+    "defaultPrice": 1200.0
+  },
+  {
+    "id": "RMAT-0101",
+    "label": "Торфогрунт питательный, 300л",
+    "section": "Газон",
+    "subsection": "Материалы и комплектующие",
+    "unit": "кипа",
+    "materialType": "Сыпучий / объёмный",
+    "baseReserveCoeff": 1.08,
+    "defaultPrice": 2200.0
+  },
+  {
+    "id": "RMAT-0102",
+    "label": "Труба двустенная гофрированная d=110мм SN8",
+    "section": "Ливневая канализация",
+    "subsection": "Трубопровод и фасонные части",
+    "unit": "м.пог.",
+    "materialType": "Инженерный материал",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 480.0
+  },
+  {
+    "id": "RMAT-0103",
+    "label": "Труба дренажная d110 SN6",
+    "section": "Дренаж",
+    "subsection": "Трубопровод",
+    "unit": "м.пог.",
+    "materialType": "Инженерный материал",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 185.0
+  },
+  {
+    "id": "RMAT-0104",
+    "label": "Труба наружной канализации d110мм SN4",
+    "section": "Мощение",
+    "subsection": "Прочее по мощению",
+    "unit": "м.пог.",
+    "materialType": "Инженерный материал",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 305.0
+  },
+  {
+    "id": "RMAT-0105",
+    "label": "Труба наружной канализации d110мм SN8",
+    "section": "Ливневая канализация",
+    "subsection": "Трубопровод и фасонные части",
+    "unit": "шт",
+    "materialType": "Инженерный материал",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 710.0
+  },
+  {
+    "id": "RMAT-0106",
+    "label": "Уголок металл., 50*50*5мм",
+    "section": "Мощение",
+    "subsection": "Бордюры и ограничения",
+    "unit": "м.пог.",
+    "materialType": "Прочий материал",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 460.0
+  },
+  {
+    "id": "RMAT-0107",
+    "label": "Удобрение минеральное длительного действия",
+    "section": "Мощение",
+    "subsection": "Прочее по мощению",
+    "unit": "кг",
+    "materialType": "Прочий материал",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 615.0
+  },
+  {
+    "id": "RMAT-0108",
+    "label": "Удобрение универсальн., газонное",
+    "section": "Газон",
+    "subsection": "Газон и укладка",
+    "unit": "кг",
+    "materialType": "Рулонный материал",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 190.0
+  },
+  {
+    "id": "RMAT-0109",
+    "label": "Установка бордюра (криволинейная)",
+    "section": "Газон",
+    "subsection": "Бордюры и ограничения",
+    "unit": "м.пог.",
+    "materialType": "Бортовой элемент",
+    "baseReserveCoeff": 1.1,
+    "defaultPrice": 240.0
+  },
+  {
+    "id": "RMAT-0110",
+    "label": "Установка бордюра металлического",
+    "section": "Мощение",
+    "subsection": "Бордюры и ограничения",
+    "unit": "м.пог.",
+    "materialType": "Бортовой элемент",
+    "baseReserveCoeff": 1.1,
+    "defaultPrice": 260.0
+  },
+  {
+    "id": "RMAT-0111",
+    "label": "Установка бордюра ограничивающего (доска, брусок)",
+    "section": "Газон",
+    "subsection": "Бордюры и ограничения",
+    "unit": "м.пог.",
+    "materialType": "Бортовой элемент",
+    "baseReserveCoeff": 1.1,
+    "defaultPrice": 450.0
+  },
+  {
+    "id": "RMAT-0112",
+    "label": "Установка бордюра пластикового",
+    "section": "Мощение",
+    "subsection": "Бордюры и ограничения",
+    "unit": "м.пог.",
+    "materialType": "Бортовой элемент",
+    "baseReserveCoeff": 1.1,
+    "defaultPrice": 120.0
+  },
+  {
+    "id": "RMAT-0113",
+    "label": "фанера 12х1220*2440мм (для опалубки)",
+    "section": "Мощение",
+    "subsection": "Бетон и конструктив",
+    "unit": "шт",
+    "materialType": "Штучный материал",
+    "baseReserveCoeff": 1.05,
+    "defaultPrice": 2880.0
+  },
+  {
+    "id": "RMAT-0114",
+    "label": "Фасонные элементы - тройники, соединения, заглушки",
+    "section": "Ливневая канализация",
+    "subsection": "Трубопровод и фасонные части",
+    "unit": "компл",
+    "materialType": "Прочий материал",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 200.0
+  },
+  {
+    "id": "RMAT-0115",
+    "label": "Цемент М400, 50кг",
+    "section": "Ливневая канализация",
+    "subsection": "Материалы и комплектующие",
+    "unit": "шт",
+    "materialType": "Сыпучий / объёмный",
+    "baseReserveCoeff": 1.08,
+    "defaultPrice": 510.0
+  },
+  {
+    "id": "RMAT-0116",
+    "label": "ЦПС М300, 25кг",
+    "section": "Освещение",
+    "subsection": "Основания и расходники",
+    "unit": "шт",
+    "materialType": "Штучный материал",
+    "baseReserveCoeff": 1.05,
+    "defaultPrice": 265.0
+  },
+  {
+    "id": "RMAT-0117",
+    "label": "Щебень гранитный фр. 20-40мм",
+    "section": "Дренаж",
+    "subsection": "Материалы и комплектующие",
+    "unit": "м3",
+    "materialType": "Сыпучий / объёмный",
+    "baseReserveCoeff": 1.08,
+    "defaultPrice": 2060.0
+  },
+  {
+    "id": "RMAT-0118",
+    "label": "Щебень гранитный фр. 5-20мм",
+    "section": "Дренаж",
+    "subsection": "Материалы и комплектующие",
+    "unit": "м3",
+    "materialType": "Сыпучий / объёмный",
+    "baseReserveCoeff": 1.08,
+    "defaultPrice": 2840.0
+  },
+  {
+    "id": "RMAT-0119",
+    "label": "Щебень гранитный фр. 5-20мм, 50кг",
+    "section": "Освещение",
+    "subsection": "Основания и расходники",
+    "unit": "шт",
+    "materialType": "Сыпучий / объёмный",
+    "baseReserveCoeff": 1.08,
+    "defaultPrice": 340.0
+  },
+  {
+    "id": "RMAT-0120",
+    "label": "Щит управления ландшафтным освещением (щит DKC 500*600*200мм IP65, кол-во модулей 72 элементы на базе ИЕК, 3 фазы 32А, 8 выходов под защитой УЗО)",
+    "section": "Освещение",
+    "subsection": "Оборудование и комплектующие",
+    "unit": "шт",
+    "materialType": "Штучный материал",
+    "baseReserveCoeff": 1.05,
+    "defaultPrice": 35000.0
+  },
+  {
+    "id": "RMAT-0121",
+    "label": "Электроды",
+    "section": "Мощение",
+    "subsection": "Конструкции и отделка",
+    "unit": "уп.",
+    "materialType": "Прочий материал",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 690.0
+  },
+  {
+    "id": "RMAT-0122",
+    "label": "Песок строительный, м³",
+    "section": "Мощение",
+    "subsection": "Основание",
+    "unit": "м3",
+    "materialType": "Сыпучий / объёмный",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 800.0
+  },
+  {
+    "id": "RMAT-0123",
+    "label": "Бордюрный камень",
+    "section": "Мощение",
+    "subsection": "Бордюры и ограничения",
+    "unit": "шт",
+    "materialType": "Бортовой элемент",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 220.0
+  },
+  {
+    "id": "RMAT-0124",
+    "label": "Семена газонные",
+    "section": "Газон",
+    "subsection": "Материалы и комплектующие",
+    "unit": "кг",
+    "materialType": "Прочий материал",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 380.0
+  },
+  {
+    "id": "RMAT-0125",
+    "label": "Трубы ПНД Ø32",
+    "section": "Полив",
+    "subsection": "Трубопровод",
+    "unit": "пог.м",
+    "materialType": "Прочий материал",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 85.0
+  },
+  {
+    "id": "RMAT-0126",
+    "label": "Спринклеры роторные",
+    "section": "Полив",
+    "subsection": "Оборудование",
+    "unit": "шт",
+    "materialType": "Прочий материал",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 1200.0
+  },
+  {
+    "id": "RMAT-0127",
+    "label": "Светильник грунтовый",
+    "section": "Освещение",
+    "subsection": "Оборудование и комплектующие",
+    "unit": "шт",
+    "materialType": "Прочий материал",
+    "baseReserveCoeff": 1.0,
+    "defaultPrice": 2800.0
+  }
+]

@@ -1,4 +1,4 @@
-/** Строковый id категории работ. Встроенные: "lawn" | "paving" | "curb" | "drainage" | "planting" | "irrigation" | "lighting" */
+/** Строковый id категории работ */
 export type WorkCategory = string;
 
 export interface WorkInput {
@@ -7,13 +7,12 @@ export interface WorkInput {
   variant?: string;
 }
 
-// ─── Каталог (динамические данные) ──────────────────────────────────────────
+// ─── Каталог ─────────────────────────────────────────────────────────────────
 
 export interface CatalogVariant {
   id: string;
   label: string;
   unitPrice: number;
-  /** undefined = активна */
   active?: boolean;
 }
 
@@ -22,7 +21,6 @@ export interface CatalogCategory {
   label: string;
   unit: string;
   variants: CatalogVariant[];
-  /** undefined = активна */
   active?: boolean;
 }
 
@@ -55,23 +53,6 @@ export interface Catalog {
   extraCostPresets: CatalogExtraCostPreset[];
 }
 
-// ─── Устаревшие — оставлены для совместимости ────────────────────────────────
-
-/** @deprecated Используйте CatalogVariant */
-export interface PricingVariant {
-  id: string;
-  label: string;
-  unitPrice: number;
-}
-
-/** @deprecated Используйте CatalogCategory */
-export interface PricingCategory {
-  id: string;
-  label: string;
-  unit: string;
-  variants: PricingVariant[];
-}
-
 // ─── Строки сметы ────────────────────────────────────────────────────────────
 
 export interface EstimateLine {
@@ -85,7 +66,6 @@ export interface EstimateLine {
   subtotal: number;
 }
 
-/** Ручная строка — используется в разделе работ, материалов, доп. расходов */
 export interface ManualLine {
   id: string;
   title: string;
@@ -112,6 +92,69 @@ export interface ExtraCost {
   title: string;
   amount: number;
   comment?: string;
+}
+
+// ─── Разделы сметы (НОВОЕ) ────────────────────────────────────────────────────
+
+/** Тип раздела:
+ *  standard    — обычный раздел (работы + материалы)
+ *  extra_costs — раздел 14: доп. расходы / вывоз грунта
+ *  org_costs   — раздел 15: орг. затраты (%)
+ */
+export type SectionType = "standard" | "extra_costs" | "org_costs";
+
+/** Статья организационных затрат (раздел 15) */
+export interface OrgCostItem {
+  id: string;
+  title: string;
+  type: "percent" | "fixed";
+  /** % или фиксированная сумма в рублях */
+  value: number;
+  note?: string;
+}
+
+/** Вычисленная статья орг. затрат */
+export interface OrgCostResult {
+  item: OrgCostItem;
+  amount: number;
+}
+
+/** Входной раздел — хранится в State и localStorage */
+export interface EstimateSection {
+  id: string;
+  sectionName: string;
+  sectionType: SectionType;
+  /** Работы из каталога */
+  catalogItems: WorkInput[];
+  /** Ручные строки работ */
+  manualItems: ManualLine[];
+  /** Материалы этого раздела */
+  materials: MaterialLine[];
+  /** Статьи доп. расходов (только для sectionType=extra_costs) */
+  extraItems: ExtraCost[];
+  /** Статьи орг. затрат (только для sectionType=org_costs) */
+  orgCostItems: OrgCostItem[];
+  note?: string;
+}
+
+/** Вычисленный раздел — часть Estimate, используется в PrintDoc */
+export interface EstimateSectionResult {
+  id: string;
+  sectionName: string;
+  sectionType: SectionType;
+  /** Порядковый номер раздела в документе (1-based) */
+  sectionIndex: number;
+  lines: EstimateLine[];
+  manualItems: ManualLine[];
+  materials: MaterialLine[];
+  extraItems: ExtraCost[];
+  orgCostResults: OrgCostResult[];
+  /** Итого работы (с коэффициентом + ручные) */
+  worksTotal: number;
+  /** Итого материалы */
+  materialsTotal: number;
+  /** Итого раздел */
+  sectionTotal: number;
 }
 
 // ─── Финансы ─────────────────────────────────────────────────────────────────
@@ -154,9 +197,12 @@ export interface EstimateSummary {
 }
 
 export interface Estimate {
+  /** Разделы сметы с результатами вычислений */
+  sections: EstimateSectionResult[];
+  // Плоские поля (производные от sections, для EstimateTable и backward compat)
   lines: EstimateLine[];
-  worksSubtotal: number;
   complexityCoeff: number;
+  worksSubtotal: number;
   worksTotal: number;
   manualWorks: ManualLine[];
   manualWorksSubtotal: number;
@@ -182,24 +228,47 @@ export interface SavedEstimate {
   id: string;
   createdAt: string;
   meta: ProjectMeta;
-  inputs: WorkInput[];
+  // Новый формат
+  sections?: EstimateSection[];
   complexityCoeff: number;
+  financialTerms?: FinancialTerms;
+  total: number;
+  // Старый формат (backward compat, только для чтения)
+  inputs: WorkInput[];
   materials?: MaterialLine[];
   extraCosts?: ExtraCost[];
   manualWorks?: ManualLine[];
-  financialTerms?: FinancialTerms;
-  total: number;
 }
 
 export interface EstimateTemplate {
   id: string;
   name: string;
   description?: string;
+  // Новый формат
+  sections?: EstimateSection[];
+  complexityCoeff?: number;
+  // Старый формат (backward compat)
   inputs: WorkInput[];
   manualWorks?: ManualLine[];
   materials?: MaterialLine[];
   extraCosts?: ExtraCost[];
-  complexityCoeff?: number;
   isBuiltIn?: boolean;
   createdAt?: string;
+}
+
+// ─── Устаревшие псевдонимы (backward compat) ─────────────────────────────────
+
+/** @deprecated Используйте CatalogVariant */
+export interface PricingVariant {
+  id: string;
+  label: string;
+  unitPrice: number;
+}
+
+/** @deprecated Используйте CatalogCategory */
+export interface PricingCategory {
+  id: string;
+  label: string;
+  unit: string;
+  variants: PricingVariant[];
 }

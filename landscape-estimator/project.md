@@ -34,10 +34,13 @@
 
 ### Генератор смет (`/`)
 
+- **Секционная структура сметы**: смета делится на разделы (SectionPanel)
+  - `standard` — раздел с работами (каталог + ручные) и материалами
+  - `extra_costs` — раздел доп. расходов (вывоз грунта, доставка и т.д.)
+  - `org_costs` — раздел орг. затрат (% или фиксированные суммы)
 - Добавление работ из каталога (категория + вариант + количество)
 - Ручные строки работ (произвольное название, ед. изм., цена)
 - Материалы с автодополнением из каталога
-- Дополнительные расходы с подсказками (доставка, вывоз мусора и т.д.)
 - Коэффициент сложности объекта (ползунок 1.0–1.5, применяется только к работам из каталога)
 - Финансовые условия: наценка (% или фикс), скидка (% или фикс), минимальный заказ, предоплата
 - Итоговый блок с разбивкой: работы → материалы → доп. расходы → наценка → скидка → итого → предоплата → остаток
@@ -69,14 +72,26 @@
 ## Основные сущности
 
 ```
+── Входные данные (State) ──────────────────────────────────────────────────────
+EstimateSection    — раздел сметы {sectionName, sectionType, catalogItems,
+                     manualItems, materials, extraItems, orgCostItems}
+SectionType        — "standard" | "extra_costs" | "org_costs"
 WorkInput          — строка работы из каталога {category, variant, quantity}
 ManualLine         — ручная строка работы {title, unit, quantity, price}
 MaterialLine       — материал {title, unit, quantity, price}
 ExtraCost          — доп. расход {title, amount}
+OrgCostItem        — статья орг. затрат {title, type: percent|fixed, value}
 FinancialTerms     — финансовые условия {markup, discount, minimum, prepayment}
-Estimate           — собранная смета со всеми подитогами и финансовым итогом
-SavedEstimate      — запись в истории
-EstimateTemplate   — шаблон сметы
+
+── Результаты (Estimate) ───────────────────────────────────────────────────────
+EstimateSectionResult — вычисленный раздел {lines, manualItems, materials,
+                         extraItems, orgCostResults, worksTotal, sectionTotal}
+Estimate           — собранная смета {sections[], lines[], summary, total, ...}
+EstimateSummary    — финансовый итог {baseTotal, markupAmount, discountAmount, ...}
+
+── Хранилище ───────────────────────────────────────────────────────────────────
+SavedEstimate      — запись в истории (новый формат: sections[]; legacy: inputs[])
+EstimateTemplate   — шаблон сметы (новый формат: sections[]; legacy: inputs[])
 Catalog            — каталог {works, materials, coefficients, extraCostPresets}
 ```
 
@@ -89,8 +104,8 @@ Catalog            — каталог {works, materials, coefficients, extraCost
 | `landscape_estimator_draft` | Текущий черновик сметы |
 | `landscape_estimator_history` | История сохранённых смет (до 50) |
 | `landscape_templates_v1` | Шаблоны (встроенные + пользовательские) |
-| `landscape_catalog_v1` | Каталог (v1, текущий рабочий) |
-| `landscape_catalog_v2_preview` | Feature flag для catalog v2 (строка `"true"`) |
+| `landscape_catalog_v1` | Каталог (v1, legacy fallback) |
+| `landscape_catalog_v2_rollback` | Откат к v1 ценам (строка `"true"`); при отсутствии — v2 активен |
 
 ---
 
@@ -121,8 +136,7 @@ Catalog v2 — это нормализованный каталог работ �
 - Works: 22/22 resolved (11 canonical + 11 legacy-key, 0 fuzzy, 0 requiresRemap)
 - Materials: 15/15 resolved (7 canonical + 1 manual-remap + 4 legacy + 3 fuzzy, 0 requiresRemap)
 
-**Активация preview:** `localStorage.setItem("landscape_catalog_v2_preview", "true")`
-**UI по умолчанию работает на v1.** Переключение на v2 по умолчанию — следующий шаг.
+**UI по умолчанию работает на v2.** Откат к v1 ценам: `localStorage.setItem("landscape_catalog_v2_rollback", "true")`.
 
 **Regression тест:** `npm run test:catalog-v2` — 12 автоматических проверок, 12/12 PASS.
 
@@ -142,10 +156,8 @@ Catalog v2 — это нормализованный каталог работ �
 
 ## Ближайшие шаги
 
-1. Пройти ручной browser-чеклист из `data/catalog-v2/preview-regression-report.json` (10 сценариев)
-2. Переключить основной UI на catalog v2 по умолчанию
-3. Убрать или заархивировать `src/config/pricing.json` и `src/config/materials.json` как legacy
-4. Обновить страницу `/catalog` для работы с v2-структурой (RWORK/RMAT IDs)
+1. Убрать или заархивировать `src/config/pricing.json` и `src/config/materials.json` как legacy
+2. Обновить страницу `/catalog` для работы с v2-структурой (RWORK/RMAT IDs)
 
 ---
 

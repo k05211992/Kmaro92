@@ -1,6 +1,9 @@
 import type {
   WorkInput,
   EstimateLine,
+  EstimateSection,
+  EstimateSectionResult,
+  OrgCostResult,
   Estimate,
   CatalogCategory,
   MaterialLine,
@@ -12,10 +15,9 @@ import type {
 import { DEFAULT_FINANCIAL_TERMS } from "@/types";
 import pricingJson from "@/config/pricing.json";
 
-/** Каталог по умолчанию (из JSON), используется как fallback */
 const DEFAULT_CATALOG = pricingJson as unknown as CatalogCategory[];
 
-// ─── Работы из каталога ──────────────────────────────────────────────────────
+// ─── Строка из каталога ───────────────────────────────────────────────────────
 
 export function buildEstimateLine(
   input: WorkInput,
@@ -41,7 +43,7 @@ export function buildEstimateLine(
   };
 }
 
-// ─── Ручные строки ───────────────────────────────────────────────────────────
+// ─── Фабрики строк ────────────────────────────────────────────────────────────
 
 export function makeManualLine(overrides: Partial<Omit<ManualLine, "isManual">> = {}): ManualLine {
   return {
@@ -60,8 +62,6 @@ export function makeManualLine(overrides: Partial<Omit<ManualLine, "isManual">> 
 export function updateManualLineSubtotal(line: ManualLine): ManualLine {
   return { ...line, subtotal: line.quantity * line.price };
 }
-
-// ─── Материалы ───────────────────────────────────────────────────────────────
 
 export function makeMaterial(overrides: Partial<MaterialLine> = {}): MaterialLine {
   return {
@@ -84,8 +84,6 @@ export function calcMaterialSubtotal(materials: MaterialLine[]): number {
   return materials.reduce((sum, m) => sum + m.subtotal, 0);
 }
 
-// ─── Доп. расходы ────────────────────────────────────────────────────────────
-
 export function makeExtraCost(overrides: Partial<ExtraCost> = {}): ExtraCost {
   return {
     id: crypto.randomUUID(),
@@ -100,7 +98,25 @@ export function calcExtraCostsTotal(extraCosts: ExtraCost[]): number {
   return extraCosts.reduce((sum, e) => sum + e.amount, 0);
 }
 
-// ─── Финансовые условия ──────────────────────────────────────────────────────
+// ─── Фабрика раздела ──────────────────────────────────────────────────────────
+
+export function makeSection(
+  overrides: Partial<Omit<EstimateSection, "id">> = {}
+): EstimateSection {
+  return {
+    id: crypto.randomUUID(),
+    sectionName: "",
+    sectionType: "standard",
+    catalogItems: [],
+    manualItems: [],
+    materials: [],
+    extraItems: [],
+    orgCostItems: [],
+    ...overrides,
+  };
+}
+
+// ─── Финансовые условия ───────────────────────────────────────────────────────
 
 export function calcFinancials(
   baseTotal: number,
@@ -155,29 +171,131 @@ export function calcFinancials(
   };
 }
 
-// ─── Сборка сметы ────────────────────────────────────────────────────────────
+// ─── Вычисление раздела ───────────────────────────────────────────────────────
 
-export function buildEstimate(
-  inputs: WorkInput[],
-  complexityCoeff: number,
-  materials: MaterialLine[] = [],
-  extraCosts: ExtraCost[] = [],
-  manualWorks: ManualLine[] = [],
-  financialTerms: FinancialTerms = DEFAULT_FINANCIAL_TERMS,
-  catalog: CatalogCategory[] = DEFAULT_CATALOG
-): Estimate {
-  const lines = inputs
+function buildSectionResult(
+  section: EstimateSection,
+  sectionIndex: number,
+  coeff: number,
+  standardBase: number,
+  catalog: CatalogCategory[]
+): EstimateSectionResult {
+  if (section.sectionType === "extra_costs") {
+    const total = section.extraItems.reduce((s, e) => s + e.amount, 0);
+    return {
+      id: section.id,
+      sectionName: section.sectionName,
+      sectionType: "extra_costs",
+      sectionIndex,
+      lines: [],
+      manualItems: [],
+      materials: [],
+      extraItems: section.extraItems,
+      orgCostResults: [],
+      worksTotal: total,
+      materialsTotal: 0,
+      sectionTotal: total,
+    };
+  }
+
+  if (section.sectionType === "org_costs") {
+    const orgCostResults: OrgCostResult[] = section.orgCostItems.map((item) => ({
+      item,
+      amount:
+        item.type === "percent"
+          ? Math.round((standardBase * item.value) / 100)
+          : Math.round(item.value),
+    }));
+    const total = orgCostResults.reduce((s, r) => s + r.amount, 0);
+    return {
+      id: section.id,
+      sectionName: section.sectionName,
+      sectionType: "org_costs",
+      sectionIndex,
+      lines: [],
+      manualItems: [],
+      materials: [],
+      extraItems: [],
+      orgCostResults,
+      worksTotal: 0,
+      materialsTotal: 0,
+      sectionTotal: total,
+    };
+  }
+
+  // standard section
+  const lines = section.catalogItems
     .map((input) => buildEstimateLine(input, catalog))
     .filter((l): l is EstimateLine => l !== null);
 
-  const worksSubtotal = lines.reduce((sum, l) => sum + l.subtotal, 0);
-  const coeff = Math.min(Math.max(complexityCoeff, 1.0), 1.5);
-  const worksTotal = Math.round(worksSubtotal * coeff);
+  const linesSubtotal = lines.reduce((s, l) => s + l.subtotal, 0);
+  const linesWithCoeff = Math.round(linesSubtotal * coeff);
+  const manualSubtotal = section.manualItems.reduce((s, m) => s + m.subtotal, 0);
+  const worksTotal = linesWithCoeff + manualSubtotal;
+  const materialsTotal = calcMaterialSubtotal(section.materials);
 
-  const manualWorksSubtotal = manualWorks.reduce((sum, m) => sum + m.subtotal, 0);
-  const materialsSubtotal = calcMaterialSubtotal(materials);
-  const extraCostsTotal = calcExtraCostsTotal(extraCosts);
-  const baseTotal = worksTotal + manualWorksSubtotal + materialsSubtotal + extraCostsTotal;
+  return {
+    id: section.id,
+    sectionName: section.sectionName,
+    sectionType: "standard",
+    sectionIndex,
+    lines,
+    manualItems: section.manualItems,
+    materials: section.materials,
+    extraItems: [],
+    orgCostResults: [],
+    worksTotal,
+    materialsTotal,
+    sectionTotal: worksTotal + materialsTotal,
+  };
+}
+
+// ─── Сборка сметы ─────────────────────────────────────────────────────────────
+
+export function buildEstimate(
+  sections: EstimateSection[],
+  complexityCoeff: number,
+  financialTerms: FinancialTerms = DEFAULT_FINANCIAL_TERMS,
+  catalog: CatalogCategory[] = DEFAULT_CATALOG
+): Estimate {
+  const coeff = Math.min(Math.max(complexityCoeff, 1.0), 1.5);
+
+  // First pass: compute standard sections to get the base for org_costs
+  const standardBase = sections
+    .filter((s) => s.sectionType === "standard")
+    .reduce((sum, s) => {
+      const lines = s.catalogItems
+        .map((i) => buildEstimateLine(i, catalog))
+        .filter((l): l is EstimateLine => l !== null);
+      const linesTotal = Math.round(lines.reduce((a, l) => a + l.subtotal, 0) * coeff);
+      const manualTotal = s.manualItems.reduce((a, m) => a + m.subtotal, 0);
+      const matsTotal = calcMaterialSubtotal(s.materials);
+      return sum + linesTotal + manualTotal + matsTotal;
+    }, 0);
+
+  // Second pass: build all section results
+  const sectionResults: EstimateSectionResult[] = sections.map((s, i) =>
+    buildSectionResult(s, i + 1, coeff, standardBase, catalog)
+  );
+
+  // Derive flat fields
+  const allLines = sectionResults.flatMap((s) => s.lines);
+  const allManual = sectionResults.flatMap((s) => s.manualItems);
+  const allMaterials = sectionResults.flatMap((s) => s.materials);
+  const allExtraCosts = sectionResults.flatMap((s) => s.extraItems);
+
+  const worksSubtotal = allLines.reduce((s, l) => s + l.subtotal, 0);
+  const linesWithCoeffTotal = Math.round(worksSubtotal * coeff);
+  const manualWorksSubtotal = allManual.reduce((s, m) => s + m.subtotal, 0);
+  const materialsSubtotal = calcMaterialSubtotal(allMaterials);
+  const extraCostsTotal = calcExtraCostsTotal(allExtraCosts);
+  const orgCostsTotal = sectionResults
+    .filter((s) => s.sectionType === "org_costs")
+    .reduce((s, r) => s + r.sectionTotal, 0);
+
+  const worksTotal = linesWithCoeffTotal + manualWorksSubtotal;
+  const baseTotal =
+    worksTotal + materialsSubtotal + extraCostsTotal + orgCostsTotal;
 
   const financials = calcFinancials(baseTotal, financialTerms);
 
@@ -192,15 +310,16 @@ export function buildEstimate(
   };
 
   return {
-    lines,
-    worksSubtotal,
+    sections: sectionResults,
+    lines: allLines,
     complexityCoeff: coeff,
+    worksSubtotal,
     worksTotal,
-    manualWorks,
+    manualWorks: allManual,
     manualWorksSubtotal,
-    materials,
+    materials: allMaterials,
     materialsSubtotal,
-    extraCosts,
+    extraCosts: allExtraCosts,
     extraCostsTotal,
     financialTerms,
     summary,
@@ -210,7 +329,7 @@ export function buildEstimate(
   };
 }
 
-// ─── Вспомогательные ─────────────────────────────────────────────────────────
+// ─── Вспомогательные ──────────────────────────────────────────────────────────
 
 export function formatRub(amount: number): string {
   return amount.toLocaleString("ru-RU", {

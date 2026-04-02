@@ -22,6 +22,7 @@ export interface CatalogCategory {
   unit: string;
   variants: CatalogVariant[];
   active?: boolean;
+  section?: string;
 }
 
 export interface CatalogMaterial {
@@ -30,6 +31,7 @@ export interface CatalogMaterial {
   unit: string;
   defaultPrice: number;
   active?: boolean;
+  section?: string;
 }
 
 export interface CatalogCoefficient {

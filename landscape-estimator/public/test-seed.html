@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Тестовый сид сметы</title>
+  <style>
+    body { font-family: sans-serif; padding: 40px; background: #f5f5f5; }
+    button { padding: 12px 24px; font-size: 16px; cursor: pointer; border-radius: 8px; border: none; }
+    .primary { background: #16a34a; color: white; margin-right: 12px; }
+    .secondary { background: #3b82f6; color: white; margin-right: 12px; }
+    .danger { background: #dc2626; color: white; }
+    pre { background: white; padding: 16px; border-radius: 8px; font-size: 12px; overflow: auto; max-height: 300px; }
+  </style>
+</head>
+<body>
+  <h2>Тестовые данные для landscape-estimator</h2>
+
+  <button class="primary" onclick="seedAndOpen()">1. Записать тест → открыть /</button>
+  <button class="secondary" onclick="openPrint()">2. Открыть /print</button>
+  <button class="danger" onclick="clearAll()">Очистить localStorage</button>
+
+  <p id="status"></p>
+  <pre id="output"></pre>
+
+<script>
+function uuid() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
+}
+
+const DRAFT_KEY = 'landscape_estimator_draft';
+
+function buildDraft() {
+  // Раздел 1: Газон + мощение
+  const s1 = {
+    id: uuid(),
+    sectionName: 'Газон и мощение',
+    sectionType: 'standard',
+    catalogItems: [
+      { category: 'lawn',   quantity: 250, variant: 'roll' },
+      { category: 'paving', quantity: 40,  variant: 'tile' },
+      { category: 'curb',   quantity: 60,  variant: 'concrete' },
+    ],
+    manualItems: [
+      {
+        id: uuid(), isManual: true,
+        title: 'Снятие и вывоз дёрна',
+        unit: 'м²', quantity: 250, price: 120,
+        subtotal: 30000,
+        comment: 'Включает погрузку и транспортировку'
+      }
+    ],
+    materials: [
+      { id: uuid(), title: 'Рулонный газон', unit: 'м²', quantity: 260, price: 350, subtotal: 91000, comment: 'С запасом 4%' },
+      { id: uuid(), title: 'Тротуарная плитка 40×40', unit: 'м²', quantity: 42, price: 1200, subtotal: 50400, comment: 'Серая фаска' },
+      { id: uuid(), title: 'Бордюрный камень 100×20×8', unit: 'шт', quantity: 120, price: 85, subtotal: 10200, comment: '' },
+    ],
+    extraItems: [],
+    orgCostItems: [],
+    note: 'Работы выполняются после разбивки участка'
+  };
+
+  // Раздел 2: Посадки
+  const s2 = {
+    id: uuid(),
+    sectionName: 'Посадочные работы',
+    sectionType: 'standard',
+    catalogItems: [
+      { category: 'planting', quantity: 5,  variant: 'tree_small' },
+      { category: 'planting', quantity: 15, variant: 'shrub' },
+      { category: 'planting', quantity: 80, variant: 'perennial' },
+    ],
+    manualItems: [],
+    materials: [
+      { id: uuid(), title: 'Почвогрунт универсальный', unit: 'м³', quantity: 8, price: 3200, subtotal: 25600, comment: 'ГОСТ Р 54534' },
+      { id: uuid(), title: 'Удобрение долгодействующее (Osmocote)', unit: 'кг', quantity: 12, price: 780, subtotal: 9360, comment: '' },
+    ],
+    extraItems: [],
+    orgCostItems: [],
+    note: 'Посадочный материал подбирается совместно с заказчиком'
+  };
+
+  // Раздел 14: Доп. расходы
+  const s14 = {
+    id: uuid(),
+    sectionName: 'Доп. расходы',
+    sectionType: 'extra_costs',
+    catalogItems: [],
+    manualItems: [],
+    materials: [],
+    extraItems: [
+      { id: uuid(), title: 'Вывоз строительного мусора', amount: 18000, comment: '3 рейса × 6 000 ₽' },
+      { id: uuid(), title: 'Аренда мини-экскаватора', amount: 24000, comment: '2 смены' },
+      { id: uuid(), title: 'Доставка материалов', amount: 8500, comment: 'Два рейса ГАЗель' },
+    ],
+    orgCostItems: [],
+    note: ''
+  };
+
+  // Раздел 15: Орг. затраты
+  const s15 = {
+    id: uuid(),
+    sectionName: 'Орг. затраты',
+    sectionType: 'org_costs',
+    catalogItems: [],
+    manualItems: [],
+    materials: [],
+    extraItems: [],
+    orgCostItems: [
+      { id: uuid(), title: 'Накладные расходы', type: 'percent', value: 5, note: '% от стоимости работ и материалов' },
+      { id: uuid(), title: 'Непредвиденные расходы', type: 'percent', value: 3, note: '' },
+    ],
+    note: ''
+  };
+
+  // Нужна фиктивная estimate (она будет пересчитана при загрузке страницы)
+  // Записываем только секции — при loadState они будут мигрированы и пересчитаны
+  const draft = {
+    sections: [s1, s2, s14, s15],
+    complexityCoeff: 1.1,
+    meta: {
+      clientName: 'Иванов Андрей Петрович',
+      phone: '+7 (911) 234-56-78',
+      address: 'г. Санкт-Петербург, пос. Шушары, ул. Садовая, д. 14',
+      note: 'Участок 15 соток. Работы в два этапа — май и август.'
+    },
+    financialTerms: {
+      markupType: 'percent',
+      markupValue: 0,
+      discountType: 'percent',
+      discountValue: 5,
+      minimumOrderAmount: 0,
+      prepaymentPercent: 30
+    },
+    // estimate — заглушка, будет пересчитана
+    estimate: { summary: { baseTotal: 0, finalTotal: 0 }, sections: [], lines: [], manualWorks: [], materials: [], extraCosts: [], complexityCoeff: 1.1, worksSubtotal: 0, worksTotal: 0, manualWorksSubtotal: 0, materialsSubtotal: 0, extraCostsTotal: 0, financialTerms: {}, total: 0, subtotal: 0, createdAt: new Date().toISOString() }
+  };
+
+  return draft;
+}
+
+function seedAndOpen() {
+  const draft = buildDraft();
+  localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+  document.getElementById('status').textContent = '✅ Черновик записан. Открываю главную страницу...';
+  document.getElementById('output').textContent = JSON.stringify(draft, null, 2).slice(0, 2000) + '\n...';
+  setTimeout(() => { window.location.href = '/'; }, 800);
+}
+
+function openPrint() {
+  window.open('/print', '_blank');
+}
+
+function clearAll() {
+  localStorage.removeItem(DRAFT_KEY);
+  localStorage.removeItem('landscape_estimator_history');
+  document.getElementById('status').textContent = '🗑 localStorage очищен';
+}
+</script>
+</body>
+</html>

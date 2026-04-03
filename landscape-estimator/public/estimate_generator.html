@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Генератор смет — Ландшафтные работы</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root { --brand:#2d6a4f; --brand-light:#52b788; --brand-bg:#f0fff4; }
+body { background:#f5f7f5; font-size:13px; }
+.navbar { background:var(--brand) !important; }
+.tbl th { background:#e8f5e9; font-size:12px; white-space:nowrap; }
+.tbl td { vertical-align:middle; padding:3px 6px; }
+.num { text-align:right; white-space:nowrap; }
+.inline { border:none; background:transparent; width:100%; }
+.inline:focus { outline:1px solid var(--brand-light); border-radius:3px; background:#fff; padding:2px 4px; }
+input[type=number].inline { text-align:right; }
+.sec-total td { font-weight:700; background:var(--brand-bg); }
+.grand-total td { font-weight:700; background:var(--brand); color:#fff; font-size:14px; }
+.del-btn { color:#dc3545; border:none; background:none; padding:0 4px; cursor:pointer; }
+.del-btn:hover { color:#a71d2a; }
+.summary-card .card-header { background:var(--brand); color:#fff; }
+.catalog-item:hover { background:#f0fff4; cursor:pointer; }
+@media print {
+  .no-print { display:none !important; }
+  body { background:white; font-size:12px; }
+  .card { border:none; box-shadow:none; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-dark py-2 px-3 no-print">
+  <span class="navbar-brand fw-bold"><i class="bi bi-tree-fill me-2"></i>Генератор смет</span>
+  <div class="d-flex gap-2 flex-wrap align-items-center">
+    <button class="btn btn-sm btn-outline-light" onclick="saveDraft()"><i class="bi bi-floppy me-1"></i>Сохранить</button>
+    <button class="btn btn-sm btn-outline-light" onclick="loadDraft()"><i class="bi bi-folder2-open me-1"></i>Загрузить</button>
+    <button class="btn btn-sm btn-outline-light" onclick="newEstimate()"><i class="bi bi-file-earmark-plus me-1"></i>Новый</button>
+    <button class="btn btn-sm btn-warning fw-semibold" onclick="window.print()"><i class="bi bi-printer me-1"></i>Печать / PDF</button>
+    <button class="btn btn-sm btn-success fw-semibold" onclick="exportExcel()"><i class="bi bi-file-excel me-1"></i>Excel</button>
+    <small class="text-white-50" id="saveStatus"></small>
+  </div>
+</nav>
+
+<!-- PROJECT INFO -->
+<div class="container-fluid px-3 py-2 bg-white border-bottom no-print">
+  <div class="row g-2 align-items-center">
+    <div class="col-auto fw-semibold small text-muted">Проект:</div>
+    <div class="col-sm-3"><input class="form-control form-control-sm" id="iProject" placeholder="Название проекта"></div>
+    <div class="col-auto fw-semibold small text-muted">Клиент:</div>
+    <div class="col-sm-2"><input class="form-control form-control-sm" id="iClient" placeholder="Имя клиента"></div>
+    <div class="col-auto fw-semibold small text-muted">Дата:</div>
+    <div class="col-auto"><input type="date" class="form-control form-control-sm" id="iDate"></div>
+    <div class="col-auto fw-semibold small text-muted">Адрес:</div>
+    <div class="col-sm-3"><input class="form-control form-control-sm" id="iAddress" placeholder="Адрес объекта"></div>
+  </div>
+</div>
+
+<!-- CONTROLS -->
+<div class="container-fluid px-3 py-2 bg-light border-bottom no-print">
+  <div class="row g-2 align-items-center flex-wrap">
+    <div class="col-auto fw-semibold small">Коэф. сложности:</div>
+    <div class="col-auto">
+      <input type="range" class="form-range" id="complexityRange" min="1" max="1.5" step="0.05" value="1" oninput="onComplexity(this.value)" style="width:120px">
+    </div>
+    <div class="col-auto"><span id="complexityVal" class="badge bg-secondary">×1.00</span></div>
+    <div class="col-auto text-muted">|</div>
+    <div class="col-auto fw-semibold small">НДС:</div>
+    <div class="col-auto d-flex align-items-center gap-1">
+      <div class="form-check form-switch mb-0">
+        <input class="form-check-input" type="checkbox" id="vatCheck" onchange="recalc()">
+        <label class="form-check-label small" for="vatCheck">Вкл.</label>
+      </div>
+      <input type="number" class="form-control form-control-sm" id="vatRate" value="20" min="0" max="30" style="width:52px" oninput="recalc()">
+      <span class="text-muted small">%</span>
+    </div>
+    <div class="col-auto text-muted">|</div>
+    <div class="col-auto fw-semibold small">Наценка на работы:</div>
+    <div class="col-auto d-flex align-items-center gap-1">
+      <input type="number" class="form-control form-control-sm" id="markupWork" value="0" min="0" max="200" step="5" style="width:60px" oninput="recalc()">
+      <span class="text-muted small">%</span>
+    </div>
+    <div class="col-auto fw-semibold small">Наценка на материалы:</div>
+    <div class="col-auto d-flex align-items-center gap-1">
+      <input type="number" class="form-control form-control-sm" id="markupMat" value="10" min="0" max="200" step="5" style="width:60px" oninput="recalc()">
+      <span class="text-muted small">%</span>
+    </div>
+    <div class="col-auto text-muted">|</div>
+    <div class="col-auto">
+      <button class="btn btn-sm btn-outline-primary" onclick="openAddModal('works')"><i class="bi bi-plus-lg me-1"></i>Добавить работу</button>
+      <button class="btn btn-sm btn-outline-purple ms-1" onclick="openAddModal('materials')" style="color:#6610f2;border-color:#6610f2"><i class="bi bi-plus-lg me-1"></i>Добавить материал</button>
+    </div>
+  </div>
+</div>
+
+<!-- HINT -->
+<div class="container-fluid px-3 py-1 no-print" style="background:#e8f5e9;border-bottom:1px solid #b7dfca">
+  <small class="text-muted"><b style="color:var(--brand)">Как работать:</b> ① Заполни проект и клиента → ② Добавь работы и материалы → ③ Нажми Печать/PDF</small>
+</div>
+
+<!-- WORKS TABLE -->
+<div class="container-fluid px-3 pt-3">
+  <div class="card mb-3">
+    <div class="card-header py-2 fw-bold" style="background:#e8f5e9">
+      <i class="bi bi-tools me-2"></i>Работы
+    </div>
+    <div class="card-body p-0">
+      <table class="table table-sm table-bordered tbl mb-0" id="worksTable">
+        <thead>
+          <tr>
+            <th style="width:36px">#</th>
+            <th>Наименование</th>
+            <th>Раздел</th>
+            <th style="width:80px">Ед. изм.</th>
+            <th style="width:80px">Кол-во</th>
+            <th style="width:110px" class="num">Цена (₽)</th>
+            <th style="width:120px" class="num">Сумма (₽)</th>
+            <th style="width:32px" class="no-print"></th>
+          </tr>
+        </thead>
+        <tbody id="worksBody">
+          <tr id="worksEmpty"><td colspan="8" class="text-center text-muted py-3">Нет позиций. Нажмите «Добавить работу»</td></tr>
+        </tbody>
+        <tfoot>
+          <tr class="sec-total">
+            <td colspan="6" class="text-end">Итого работы:</td>
+            <td class="num" id="worksTotalCell">0 ₽</td>
+            <td class="no-print"></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <!-- MATERIALS TABLE -->
+  <div class="card mb-3">
+    <div class="card-header py-2 fw-bold" style="background:#f3e8ff">
+      <i class="bi bi-box-seam me-2"></i>Материалы
+    </div>
+    <div class="card-body p-0">
+      <table class="table table-sm table-bordered tbl mb-0" id="materialsTable">
+        <thead>
+          <tr>
+            <th style="width:36px">#</th>
+            <th>Наименование</th>
+            <th>Раздел</th>
+            <th style="width:80px">Ед. изм.</th>
+            <th style="width:80px">Кол-во</th>
+            <th style="width:110px" class="num">Цена (₽)</th>
+            <th style="width:120px" class="num">Сумма (₽)</th>
+            <th style="width:32px" class="no-print"></th>
+          </tr>
+        </thead>
+        <tbody id="materialsBody">
+          <tr id="materialsEmpty"><td colspan="8" class="text-center text-muted py-3">Нет позиций. Нажмите «Добавить материал»</td></tr>
+        </tbody>
+        <tfoot>
+          <tr class="sec-total">
+            <td colspan="6" class="text-end">Итого материалы:</td>
+            <td class="num" id="materialsTotalCell">0 ₽</td>
+            <td class="no-print"></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="card summary-card mb-4">
+    <div class="card-header fw-bold"><i class="bi bi-calculator-fill me-2"></i>Итого по смете</div>
+    <div class="card-body p-0">
+      <table class="table table-sm table-bordered mb-0" id="summaryTable">
+        <tbody id="summaryBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ADD MODAL -->
+<div class="modal fade" id="addModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h6 class="modal-title fw-bold" id="addModalTitle">Добавить позицию</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-2 mb-3">
+          <div class="col-12">
+            <input class="form-control" id="catalogSearch" placeholder="Поиск по названию или разделу..." oninput="filterCatalog()">
+          </div>
+        </div>
+        <div class="mb-2">
+          <select class="form-select form-select-sm" id="catalogSectionFilter" onchange="filterCatalog()">
+            <option value="">Все разделы</option>
+          </select>
+        </div>
+        <div style="max-height:320px;overflow-y:auto;border:1px solid #dee2e6;border-radius:4px" id="catalogList"></div>
+        <hr>
+        <div class="fw-semibold small mb-2">Или добавить вручную:</div>
+        <div class="row g-2">
+          <div class="col-5"><input class="form-control form-control-sm" id="manualName" placeholder="Наименование"></div>
+          <div class="col-2"><input class="form-control form-control-sm" id="manualUnit" placeholder="Ед. изм."></div>
+          <div class="col-2"><input type="number" class="form-control form-control-sm" id="manualQty" value="1" min="0" step="0.1" placeholder="Кол-во"></div>
+          <div class="col-3"><input type="number" class="form-control form-control-sm" id="manualPrice" value="0" min="0" placeholder="Цена (₽)"></div>
+        </div>
+        <button class="btn btn-sm btn-outline-secondary mt-2" onclick="addManualRow()"><i class="bi bi-plus-lg me-1"></i>Добавить вручную</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ─── State ────────────────────────────────────────────────────────────────────
+let catalog = { works: [], materials: [] };
+let works = [];
+let materials = [];
+let complexityCoeff = 1.0;
+let currentModalType = 'works'; // 'works' | 'materials'
+let addModal;
+
+// ─── Init ────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('iDate').value = new Date().toISOString().slice(0, 10);
+  addModal = new bootstrap.Modal(document.getElementById('addModal'));
+  loadCatalog();
+  loadDraftSilent();
+});
+
+async function loadCatalog() {
+  try {
+    const res = await fetch('/catalog_v2.json');
+    catalog = await res.json();
+    console.log(`Каталог загружен: ${catalog.works.length} работ, ${catalog.materials.length} материалов`);
+  } catch (e) {
+    console.warn('catalog_v2.json не найден, каталог пуст');
+  }
+}
+
+// ─── Complexity ───────────────────────────────────────────────────────────────
+function onComplexity(v) {
+  complexityCoeff = parseFloat(v);
+  document.getElementById('complexityVal').textContent = `×${complexityCoeff.toFixed(2)}`;
+  recalc();
+}
+
+// ─── Add rows ─────────────────────────────────────────────────────────────────
+function openAddModal(type) {
+  currentModalType = type;
+  document.getElementById('addModalTitle').textContent = type === 'works' ? 'Добавить работу' : 'Добавить материал';
+  document.getElementById('catalogSearch').value = '';
+  document.getElementById('manualName').value = '';
+  document.getElementById('manualUnit').value = type === 'works' ? 'м2' : 'м2';
+  document.getElementById('manualQty').value = '1';
+  document.getElementById('manualPrice').value = '0';
+
+  // Populate section filter
+  const items = type === 'works' ? catalog.works : catalog.materials;
+  const sections = [...new Set(items.map(i => i.section))].sort();
+  const sel = document.getElementById('catalogSectionFilter');
+  sel.innerHTML = '<option value="">Все разделы</option>' + sections.map(s => `<option>${s}</option>`).join('');
+
+  filterCatalog();
+  addModal.show();
+}
+
+function filterCatalog() {
+  const q = document.getElementById('catalogSearch').value.toLowerCase();
+  const sec = document.getElementById('catalogSectionFilter').value;
+  const items = currentModalType === 'works' ? catalog.works : catalog.materials;
+  const filtered = items.filter(i => {
+    const matchQ = !q || i.name.toLowerCase().includes(q) || (i.section||'').toLowerCase().includes(q) || (i.subsection||'').toLowerCase().includes(q);
+    const matchS = !sec || i.section === sec;
+    return matchQ && matchS;
+  });
+
+  const list = document.getElementById('catalogList');
+  if (!filtered.length) {
+    list.innerHTML = '<div class="p-3 text-center text-muted small">Ничего не найдено</div>';
+    return;
+  }
+  list.innerHTML = filtered.map(item => `
+    <div class="catalog-item px-3 py-2 border-bottom d-flex justify-content-between align-items-center" onclick="addFromCatalog(${JSON.stringify(item).replace(/"/g,'&quot;')})">
+      <div>
+        <div class="fw-semibold">${item.name}</div>
+        <small class="text-muted">${item.section}${item.subsection ? ' / ' + item.subsection : ''}</small>
+      </div>
+      <div class="text-end ms-3 flex-shrink-0">
+        <span class="text-muted small">${item.unit}</span>
+        <span class="fw-semibold ms-2">${fmt(item.price)} ₽</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function addFromCatalog(item) {
+  const row = {
+    id: Date.now(),
+    name: item.name,
+    section: item.section,
+    unit: item.unit,
+    qty: 1,
+    price: item.price,
+    fromCatalog: true,
+  };
+  if (currentModalType === 'works') works.push(row);
+  else materials.push(row);
+  renderAll();
+  addModal.hide();
+  autosave();
+}
+
+function addManualRow() {
+  const name = document.getElementById('manualName').value.trim();
+  if (!name) { alert('Введите наименование'); return; }
+  const row = {
+    id: Date.now(),
+    name,
+    section: '',
+    unit: document.getElementById('manualUnit').value || 'шт',
+    qty: parseFloat(document.getElementById('manualQty').value) || 1,
+    price: parseFloat(document.getElementById('manualPrice').value) || 0,
+    fromCatalog: false,
+  };
+  if (currentModalType === 'works') works.push(row);
+  else materials.push(row);
+  renderAll();
+  addModal.hide();
+  autosave();
+}
+
+// ─── Render ───────────────────────────────────────────────────────────────────
+function renderAll() {
+  renderTable('works', 'worksBody', 'worksEmpty');
+  renderTable('materials', 'materialsBody', 'materialsEmpty');
+  recalc();
+}
+
+function renderTable(type, tbodyId, emptyId) {
+  const rows = type === 'works' ? works : materials;
+  const tbody = document.getElementById(tbodyId);
+  const empty = document.getElementById(emptyId);
+  if (!rows.length) {
+    tbody.innerHTML = '';
+    tbody.appendChild(empty);
+    empty.style.display = '';
+    return;
+  }
+  empty.style.display = 'none';
+  tbody.innerHTML = rows.map((r, i) => {
+    const coeff = type === 'works' ? complexityCoeff : 1;
+    const total = r.qty * r.price * coeff;
+    return `
+      <tr>
+        <td class="text-muted">${i + 1}</td>
+        <td><input class="inline" value="${esc(r.name)}" onchange="updateRow('${type}',${r.id},'name',this.value)"></td>
+        <td><span class="text-muted small">${esc(r.section)}</span></td>
+        <td><input class="inline" value="${esc(r.unit)}" onchange="updateRow('${type}',${r.id},'unit',this.value)" style="width:70px"></td>
+        <td><input type="number" class="inline" value="${r.qty}" min="0" step="0.1" onchange="updateRow('${type}',${r.id},'qty',this.value)"></td>
+        <td class="num"><input type="number" class="inline" value="${r.price}" min="0" onchange="updateRow('${type}',${r.id},'price',this.value)"></td>
+        <td class="num fw-semibold">${fmt(total)} ₽</td>
+        <td class="no-print"><button class="del-btn" onclick="deleteRow('${type}',${r.id})">✕</button></td>
+      </tr>`;
+  }).join('');
+}
+
+function updateRow(type, id, field, val) {
+  const rows = type === 'works' ? works : materials;
+  const row = rows.find(r => r.id === id);
+  if (!row) return;
+  if (field === 'qty' || field === 'price') row[field] = parseFloat(val) || 0;
+  else row[field] = val;
+  renderAll();
+  autosave();
+}
+
+function deleteRow(type, id) {
+  if (type === 'works') works = works.filter(r => r.id !== id);
+  else materials = materials.filter(r => r.id !== id);
+  renderAll();
+  autosave();
+}
+
+// ─── Calc & Summary ──────────────────────────────────────────────────────────
+function recalc() {
+  const markupWork = (parseFloat(document.getElementById('markupWork').value) || 0) / 100;
+  const markupMat = (parseFloat(document.getElementById('markupMat').value) || 0) / 100;
+  const vatOn = document.getElementById('vatCheck').checked;
+  const vatRate = (parseFloat(document.getElementById('vatRate').value) || 0) / 100;
+
+  const worksBase = works.reduce((s, r) => s + r.qty * r.price * complexityCoeff, 0);
+  const matsBase = materials.reduce((s, r) => s + r.qty * r.price, 0);
+  const worksTotal = worksBase * (1 + markupWork);
+  const matsTotal = matsBase * (1 + markupMat);
+  const subtotal = worksTotal + matsTotal;
+  const vat = vatOn ? subtotal * vatRate : 0;
+  const total = subtotal + vat;
+
+  document.getElementById('worksTotalCell').textContent = fmt(worksTotal) + ' ₽';
+  document.getElementById('materialsTotalCell').textContent = fmt(matsTotal) + ' ₽';
+
+  // Re-render row totals (coeff may have changed)
+  renderTable('works', 'worksBody', 'worksEmpty');
+  renderTable('materials', 'materialsBody', 'materialsEmpty');
+
+  const rows = [
+    ['Работы (базовая стоимость)', worksBase],
+    markupWork > 0 ? [`Наценка на работы (${(markupWork*100).toFixed(0)}%)`, worksBase * markupWork] : null,
+    ['Материалы (базовая стоимость)', matsBase],
+    markupMat > 0 ? [`Наценка на материалы (${(markupMat*100).toFixed(0)}%)`, matsBase * markupMat] : null,
+    vatOn ? [`НДС ${(vatRate*100).toFixed(0)}%`, vat] : null,
+  ].filter(Boolean);
+
+  document.getElementById('summaryBody').innerHTML =
+    rows.map(([label, val]) => `<tr><td>${label}</td><td class="num">${fmt(val)} ₽</td></tr>`).join('') +
+    `<tr class="grand-total"><td class="fw-bold">ИТОГО</td><td class="num">${fmt(total)} ₽</td></tr>`;
+}
+
+// ─── Persistence ──────────────────────────────────────────────────────────────
+function getState() {
+  return {
+    project: document.getElementById('iProject').value,
+    client: document.getElementById('iClient').value,
+    date: document.getElementById('iDate').value,
+    address: document.getElementById('iAddress').value,
+    complexityCoeff,
+    vatOn: document.getElementById('vatCheck').checked,
+    vatRate: document.getElementById('vatRate').value,
+    markupWork: document.getElementById('markupWork').value,
+    markupMat: document.getElementById('markupMat').value,
+    works,
+    materials,
+  };
+}
+
+function applyState(s) {
+  document.getElementById('iProject').value = s.project || '';
+  document.getElementById('iClient').value = s.client || '';
+  document.getElementById('iDate').value = s.date || '';
+  document.getElementById('iAddress').value = s.address || '';
+  document.getElementById('vatCheck').checked = !!s.vatOn;
+  document.getElementById('vatRate').value = s.vatRate || 20;
+  document.getElementById('markupWork').value = s.markupWork || 0;
+  document.getElementById('markupMat').value = s.markupMat || 10;
+  complexityCoeff = s.complexityCoeff || 1.0;
+  document.getElementById('complexityRange').value = complexityCoeff;
+  document.getElementById('complexityVal').textContent = `×${complexityCoeff.toFixed(2)}`;
+  works = s.works || [];
+  materials = s.materials || [];
+  renderAll();
+}
+
+function autosave() {
+  try {
+    localStorage.setItem('estimate_gen_draft', JSON.stringify(getState()));
+  } catch(e) {}
+}
+
+function saveDraft() {
+  autosave();
+  const st = document.getElementById('saveStatus');
+  st.textContent = '✓ Сохранено ' + new Date().toLocaleTimeString('ru');
+  setTimeout(() => st.textContent = '', 3000);
+}
+
+function loadDraft() {
+  const raw = localStorage.getItem('estimate_gen_draft');
+  if (!raw) { alert('Нет сохранённого черновика'); return; }
+  applyState(JSON.parse(raw));
+}
+
+function loadDraftSilent() {
+  const raw = localStorage.getItem('estimate_gen_draft');
+  if (raw) try { applyState(JSON.parse(raw)); } catch(e) {}
+}
+
+function newEstimate() {
+  if (!confirm('Начать новую смету? Текущие данные будут очищены.')) return;
+  works = [];
+  materials = [];
+  document.getElementById('iProject').value = '';
+  document.getElementById('iClient').value = '';
+  document.getElementById('iDate').value = new Date().toISOString().slice(0, 10);
+  document.getElementById('iAddress').value = '';
+  renderAll();
+}
+
+// ─── Excel export ─────────────────────────────────────────────────────────────
+function exportExcel() {
+  const wb = XLSX.utils.book_new();
+  const markupWork = (parseFloat(document.getElementById('markupWork').value) || 0) / 100;
+  const markupMat = (parseFloat(document.getElementById('markupMat').value) || 0) / 100;
+  const vatOn = document.getElementById('vatCheck').checked;
+  const vatRate = (parseFloat(document.getElementById('vatRate').value) || 0) / 100;
+
+  const header = ['#', 'Наименование', 'Раздел', 'Ед.изм.', 'Кол-во', 'Цена, ₽', 'Коэф.', 'Сумма, ₽'];
+
+  const worksRows = works.map((r, i) => [
+    i + 1, r.name, r.section, r.unit, r.qty, r.price, complexityCoeff, r.qty * r.price * complexityCoeff
+  ]);
+  const worksBase = works.reduce((s, r) => s + r.qty * r.price * complexityCoeff, 0);
+  const matsRows = materials.map((r, i) => [
+    i + 1, r.name, r.section, r.unit, r.qty, r.price, 1, r.qty * r.price
+  ]);
+  const matsBase = materials.reduce((s, r) => s + r.qty * r.price, 0);
+
+  const worksTotal = worksBase * (1 + markupWork);
+  const matsTotal = matsBase * (1 + markupMat);
+  const subtotal = worksTotal + matsTotal;
+  const vat = vatOn ? subtotal * vatRate : 0;
+  const total = subtotal + vat;
+
+  const data = [
+    [`Смета: ${document.getElementById('iProject').value}`],
+    [`Клиент: ${document.getElementById('iClient').value}`, '', `Дата: ${document.getElementById('iDate').value}`],
+    [`Адрес: ${document.getElementById('iAddress').value}`],
+    [],
+    ['РАБОТЫ'],
+    header,
+    ...worksRows,
+    ['', '', '', '', '', '', 'Итого работы:', worksTotal],
+    [],
+    ['МАТЕРИАЛЫ'],
+    header,
+    ...matsRows,
+    ['', '', '', '', '', '', 'Итого материалы:', matsTotal],
+    [],
+    ['ИТОГО', '', '', '', '', '', '', total],
+  ];
+
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  XLSX.utils.book_append_sheet(wb, ws, 'Смета');
+  XLSX.writeFile(wb, `Смета_${document.getElementById('iProject').value || 'новая'}.xlsx`);
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function fmt(n) {
+  return Math.round(n).toLocaleString('ru-RU');
+}
+
+function esc(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>

@@ -4,547 +4,748 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Генератор смет — Ландшафтные работы</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
-:root { --brand:#2d6a4f; --brand-light:#52b788; --brand-bg:#f0fff4; }
-body { background:#f5f7f5; font-size:13px; }
-.navbar { background:var(--brand) !important; }
-.tbl th { background:#e8f5e9; font-size:12px; white-space:nowrap; }
-.tbl td { vertical-align:middle; padding:3px 6px; }
-.num { text-align:right; white-space:nowrap; }
-.inline { border:none; background:transparent; width:100%; }
-.inline:focus { outline:1px solid var(--brand-light); border-radius:3px; background:#fff; padding:2px 4px; }
-input[type=number].inline { text-align:right; }
-.sec-total td { font-weight:700; background:var(--brand-bg); }
-.grand-total td { font-weight:700; background:var(--brand); color:#fff; font-size:14px; }
-.del-btn { color:#dc3545; border:none; background:none; padding:0 4px; cursor:pointer; }
-.del-btn:hover { color:#a71d2a; }
-.summary-card .card-header { background:var(--brand); color:#fff; }
-.catalog-item:hover { background:#f0fff4; cursor:pointer; }
-@media print {
-  .no-print { display:none !important; }
-  body { background:white; font-size:12px; }
-  .card { border:none; box-shadow:none; }
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0d0520;color:#ffffff;min-height:100vh}
+#app{max-width:1100px;margin:0 auto;padding:20px}
+/* PROGRESS */
+#prog-wrap{position:sticky;top:0;z-index:100;background:#0d0520;padding:12px 0 8px}
+#prog-bar{height:3px;background:#2a1260;border-radius:2px}
+#prog-fill{height:3px;background:#d4ff00;border-radius:2px;transition:width .4s}
+#step-label{font-size:11px;color:rgba(255,255,255,0.5);margin-top:6px;letter-spacing:.08em}
+/* SCREENS */
+.screen{display:none}.screen.active{display:block}
+/* CLIENT SCREEN */
+.client-form{max-width:560px;padding-top:40px}
+.q-title{font-size:28px;font-weight:600;color:#ffffff;margin-bottom:6px}
+.q-sub{font-size:13px;color:rgba(255,255,255,0.55);margin-bottom:32px}
+.field-group{display:flex;flex-direction:column;gap:16px;margin-bottom:32px}
+.field-label{font-size:11px;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px}
+.tf{background:transparent;border:none;border-bottom:1.5px solid rgba(255,255,255,0.15);width:100%;padding:8px 0;font-size:16px;color:#ffffff;outline:none;font-family:inherit;transition:border-color .2s}
+.tf:focus{border-bottom-color:#d4ff00}
+.tf::placeholder{color:rgba(255,255,255,0.15)}
+/* SECTION SELECTOR */
+.sec-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:24px;margin-bottom:28px}
+.sec-card{background:#1e0d42;border:.5px solid #3d1f7a;border-radius:10px;padding:16px;cursor:pointer;transition:border-color .15s,background .15s}
+.sec-card:hover{border-color:#6b3fd4}
+.sec-card.sel{background:#2d1065;border-color:#d4ff0088}
+.sec-card-name{font-size:13px;font-weight:500;color:rgba(255,255,255,0.8);line-height:1.4}
+.sec-card.sel .sec-card-name{color:#d4ff00}
+.sec-card-count{font-size:11px;color:rgba(255,255,255,0.6);margin-top:4px}
+.sec-card.sel .sec-card-count{color:#8caa00}
+/* SECTION DETAIL */
+.sec-detail{padding-top:24px}
+.sec-nav{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap}
+.sec-tab{border:.5px solid rgba(255,255,255,0.1);border-radius:999px;padding:5px 14px;font-size:12px;color:rgba(255,255,255,0.55);cursor:pointer;background:rgba(255,255,255,0.04);white-space:nowrap;transition:all .12s}
+.sec-tab:hover{color:rgba(255,255,255,0.8)}
+.sec-tab.on{background:#2d1065;border-color:#d4ff0066;color:#d4ff00}
+/* SEARCH */
+.search-row{position:relative;margin-bottom:16px}
+.s-ico{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:14px;height:14px;stroke:rgba(255,255,255,0.2);fill:none;stroke-width:1.5;stroke-linecap:round}
+.s-in{width:100%;background:rgba(255,255,255,0.06);border:.5px solid rgba(255,255,255,0.1);border-radius:8px;height:36px;padding:0 12px 0 33px;font-size:13px;color:#ffffff;font-family:inherit;outline:none}
+.s-in:focus{border-color:rgba(212,255,0,0.3)}
+.s-in::placeholder{color:rgba(255,255,255,0.15)}
+/* WORK ROWS */
+.works-table{width:100%;border-collapse:collapse}
+.works-table th{font-size:10px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:.07em;padding:6px 0;border-bottom:.5px solid rgba(255,255,255,0.08);text-align:left;font-weight:500}
+.works-table th:last-child,.works-table td:last-child{text-align:right}
+.works-table th:nth-child(3),.works-table td:nth-child(3){text-align:center}
+.sub-header td{padding:10px 0 4px;font-size:10px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:.07em;font-weight:500}
+.work-row{cursor:pointer;transition:background .1s}
+.work-row:hover{background:rgba(255,255,255,0.04)}
+.work-row.sel{background:rgba(212,255,0,0.06)}
+.work-row td{padding:8px 6px;border-bottom:.5px solid rgba(255,255,255,0.05);font-size:12px;color:rgba(255,255,255,0.6);vertical-align:middle}
+.work-row.sel td{color:rgba(255,255,255,0.85)}
+.work-check{width:16px;height:16px;border:.5px solid rgba(255,255,255,0.15);border-radius:4px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.work-row.sel .work-check{background:#d4ff00;border-color:#d4ff00}
+.check-tick{width:8px;height:6px;stroke:#111;fill:none;stroke-width:2;stroke-linecap:round;display:none}
+.work-row.sel .check-tick{display:block}
+.work-name{color:rgba(255,255,255,0.92);font-size:13px}
+.work-row.sel .work-name{color:#d4ff00}
+.work-type-badge{font-size:10px;padding:1px 6px;border-radius:4px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.45);white-space:nowrap}
+.work-price{color:rgba(212,255,0,0.7);font-size:12px}
+.work-row.sel .work-price{color:#d4ff00}
+/* QTY INPUT */
+.qty-wrap{display:flex;align-items:center;gap:4px;justify-content:flex-end}
+.qty-btn{width:24px;height:24px;border:.5px solid rgba(255,255,255,0.1);border-radius:5px;background:transparent;color:rgba(255,255,255,0.5);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.qty-btn:hover{color:#d4ff00}
+.qty-in{width:48px;background:rgba(255,255,255,0.06);border:.5px solid rgba(255,255,255,0.1);border-radius:5px;height:24px;text-align:center;font-size:13px;color:#ffffff;font-family:inherit;outline:none}
+/* MATERIALS PANEL */
+.mats-panel{background:rgba(255,255,255,0.04);border:.5px solid rgba(255,255,255,0.08);border-radius:10px;padding:14px 16px;margin-top:20px}
+.mats-title{font-size:10px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:.07em;font-weight:500;margin-bottom:12px}
+.mat-suggest{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.mat-chip{border:.5px solid rgba(255,255,255,0.1);border-radius:6px;padding:4px 10px;font-size:11px;color:rgba(255,255,255,0.35);cursor:pointer;background:rgba(255,255,255,0.04)}
+.mat-chip:hover{border-color:rgba(255,255,255,0.2);color:rgba(255,255,255,0.6)}
+.mat-chip.sel{background:rgba(212,255,0,0.1);border-color:rgba(212,255,0,0.4);color:#d4ff00}
+.mat-rows{display:flex;flex-direction:column;gap:6px}
+.mat-row{display:flex;align-items:center;gap:6px}
+.mat-name-in{flex:1;background:rgba(255,255,255,0.06);border:.5px solid rgba(255,255,255,0.1);border-radius:6px;height:28px;padding:0 8px;font-size:12px;color:rgba(255,255,255,0.92);font-family:inherit;outline:none}
+.mat-name-in::placeholder{color:rgba(255,255,255,0.15)}
+.mat-name-in:focus{border-color:rgba(212,255,0,0.3)}
+.mat-qty-in{width:52px;background:rgba(255,255,255,0.06);border:.5px solid rgba(255,255,255,0.1);border-radius:6px;height:28px;padding:0 6px;font-size:12px;color:rgba(255,255,255,0.9);font-family:inherit;outline:none;text-align:center}
+.mat-unit-in{width:40px;background:rgba(255,255,255,0.06);border:.5px solid rgba(255,255,255,0.1);border-radius:6px;height:28px;padding:0 5px;font-size:11px;color:rgba(255,255,255,0.55);font-family:inherit;outline:none;text-align:center}
+.mat-del{width:20px;height:20px;background:transparent;border:none;color:rgba(255,255,255,0.15);cursor:pointer;font-size:14px;flex-shrink:0}
+.mat-price-in{width:72px;background:rgba(255,255,255,0.06);border:.5px solid rgba(255,255,255,0.1);border-radius:6px;height:28px;padding:0 6px;font-size:12px;color:#d4ff00;font-family:inherit;outline:none;text-align:right}
+.mat-price-in::placeholder{color:rgba(255,255,255,0.12)}
+.mat-price-in:focus{border-color:rgba(212,255,0,0.3)}
+.mat-del:hover{color:rgba(255,255,255,0.5)}
+.mat-add-btn{background:none;border:none;font-size:11px;color:rgba(255,255,255,0.4);cursor:pointer;font-family:inherit;margin-top:8px;padding:0}
+.mat-add-btn:hover{color:rgba(255,255,255,0.5)}
+/* SUMMARY */
+.summary-wrap{display:grid;grid-template-columns:1fr 380px;gap:20px;padding-top:24px}
+.summary-sections{display:flex;flex-direction:column;gap:16px}
+.sum-sec{background:rgba(255,255,255,0.04);border:.5px solid rgba(255,255,255,0.08);border-radius:10px;overflow:hidden}
+.sum-sec-head{padding:10px 14px;font-size:12px;font-weight:500;color:#a89060;border-bottom:.5px solid #1a1a1a}
+.sum-row{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 14px;border-bottom:.5px solid #161616;gap:12px}
+.sum-row:last-child{border-bottom:none}
+.sum-work-name{font-size:12px;color:#aaa;flex:1;line-height:1.4}
+.sum-work-detail{font-size:11px;color:#444;margin-top:2px}
+.sum-work-price{font-size:12px;color:#e8d5a3;white-space:nowrap;font-weight:500}
+.sum-mat-row{padding:4px 14px 4px 24px;font-size:11px;color:#444;display:flex;justify-content:space-between}
+.sum-table{width:100%;border-collapse:collapse;font-size:12px}
+.sum-table th{font-size:10px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:.07em;font-weight:500;padding:6px 14px;border-bottom:.5px solid #1a1a1a;text-align:left}
+.sum-table th:nth-child(3),.sum-table th:nth-child(4),.sum-table th:nth-child(5){text-align:right}
+.sum-table td{padding:8px 14px;border-bottom:.5px solid rgba(255,255,255,0.06);vertical-align:top;color:rgba(255,255,255,0.6)}
+.sum-table td:nth-child(3),.sum-table td:nth-child(4),.sum-table td:nth-child(5){text-align:right;white-space:nowrap}
+.sum-table td:nth-child(4){color:rgba(212,255,0,0.7)}
+.sum-table td:nth-child(5){color:#d4ff00;font-weight:500}
+.sum-table tr:last-child td{border-bottom:none}
+.sum-table .mat-line td{color:rgba(255,255,255,0.45);font-style:italic}
+.sum-table .mat-line td:nth-child(4),.sum-table .mat-line td:nth-child(5){color:rgba(255,255,255,0.15)}
+.sum-sec-head{padding:10px 14px;font-size:12px;font-weight:500;color:rgba(255,255,255,0.75);font-size:13px;border-bottom:.5px solid rgba(255,255,255,0.08);display:flex;justify-content:space-between;align-items:center}
+.sum-sec-total{font-size:13px;color:#d4ff00}
+/* TOTALS */
+.totals-card{background:rgba(255,255,255,0.04);border:.5px solid rgba(255,255,255,0.1);border-radius:10px;padding:16px;position:sticky;top:80px}
+.tot-title{font-size:11px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:.07em;margin-bottom:14px}
+.tot-row{display:flex;justify-content:space-between;font-size:13px;color:rgba(255,255,255,0.65);padding:4px 0}
+.tot-row.big{font-size:18px;color:#ffffff;font-weight:500;padding-top:10px;margin-top:6px;border-top:.5px solid rgba(255,255,255,0.1)}
+.tot-row.big span:last-child{color:#d4ff00}
+/* CLIENT INFO CARD */
+.cli-card{background:rgba(255,255,255,0.04);border:.5px solid rgba(255,255,255,0.08);border-radius:10px;padding:14px 16px;margin-bottom:14px}
+.cli-name{font-size:15px;font-weight:500;color:#d4ff00;margin-bottom:4px}
+.cli-detail{font-size:12px;color:rgba(255,255,255,0.55)}
+/* BUTTONS */
+.btn-row{display:flex;align-items:center;gap:10px;margin-top:24px}
+.btn-primary{background:#d4ff00;color:#0d0520;border:none;border-radius:7px;height:40px;padding:0 24px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit}
+.btn-primary:hover{opacity:.88}
+.btn-primary:disabled{opacity:.3;cursor:default}
+.btn-back{background:transparent;border:.5px solid rgba(255,255,255,0.15);border-radius:7px;height:40px;width:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,0.55);font-size:16px;flex-shrink:0}
+.btn-back:hover{border-color:rgba(255,255,255,0.35);color:rgba(255,255,255,0.7)}
+.btn-ghost{background:transparent;border:.5px solid rgba(255,255,255,0.15);border-radius:7px;height:40px;padding:0 18px;font-size:13px;color:rgba(255,255,255,0.4);cursor:pointer;font-family:inherit}
+.btn-ghost:hover{color:rgba(255,255,255,0.75)}
+.sel-counter{font-size:12px;color:#666;margin-left:4px}
+/* NO RESULTS */
+.no-res{text-align:center;font-size:13px;color:rgba(255,255,255,0.35);padding:32px 0}
+.sec-subtotal-bar{font-size:14px;font-weight:600;color:#d4ff00;font-weight:500;text-align:right;padding:10px 0 0;min-height:20px}
+/* SECTION PROGRESS DOTS */
+.sec-dots{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:20px}
+.sec-dot{height:3px;border-radius:2px;background:rgba(255,255,255,0.1);flex:1;min-width:20px;max-width:40px;transition:background .2s}
+.sec-dot.done{background:#8caa00}
+.sec-dot.active{background:#d4ff00}
+/* COEF */
+.coef-row{display:flex;align-items:center;gap:16px;margin-bottom:24px}
+.coef-label{font-size:13px;color:#666;min-width:200px}
+input[type=range]{-webkit-appearance:none;height:3px;background:rgba(255,255,255,0.1);border-radius:2px;outline:none;flex:1}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#d4ff00;cursor:pointer}
+.coef-val{font-size:14px;color:#e8d5a3;font-weight:500;min-width:40px;text-align:right}
+/* PRINT */
+@media print{
+  #prog-wrap,#btn-area{display:none!important}
+  body{background:#fff;color:#111}
+  .totals-card,.sum-sec{border:1px solid #ddd}
 }
 </style>
 </head>
 <body>
-
-<!-- NAVBAR -->
-<nav class="navbar navbar-dark py-2 px-3 no-print">
-  <span class="navbar-brand fw-bold"><i class="bi bi-tree-fill me-2"></i>Генератор смет</span>
-  <div class="d-flex gap-2 flex-wrap align-items-center">
-    <button class="btn btn-sm btn-outline-light" onclick="saveDraft()"><i class="bi bi-floppy me-1"></i>Сохранить</button>
-    <button class="btn btn-sm btn-outline-light" onclick="loadDraft()"><i class="bi bi-folder2-open me-1"></i>Загрузить</button>
-    <button class="btn btn-sm btn-outline-light" onclick="newEstimate()"><i class="bi bi-file-earmark-plus me-1"></i>Новый</button>
-    <button class="btn btn-sm btn-warning fw-semibold" onclick="window.print()"><i class="bi bi-printer me-1"></i>Печать / PDF</button>
-    <button class="btn btn-sm btn-success fw-semibold" onclick="exportExcel()"><i class="bi bi-file-excel me-1"></i>Excel</button>
-    <small class="text-white-50" id="saveStatus"></small>
+<div id="app">
+  <div id="prog-wrap">
+    <div id="prog-bar"><div id="prog-fill" style="width:0%"></div></div>
+    <div id="step-label">Шаг 1 из 4</div>
   </div>
-</nav>
 
-<!-- PROJECT INFO -->
-<div class="container-fluid px-3 py-2 bg-white border-bottom no-print">
-  <div class="row g-2 align-items-center">
-    <div class="col-auto fw-semibold small text-muted">Проект:</div>
-    <div class="col-sm-3"><input class="form-control form-control-sm" id="iProject" placeholder="Название проекта"></div>
-    <div class="col-auto fw-semibold small text-muted">Клиент:</div>
-    <div class="col-sm-2"><input class="form-control form-control-sm" id="iClient" placeholder="Имя клиента"></div>
-    <div class="col-auto fw-semibold small text-muted">Дата:</div>
-    <div class="col-auto"><input type="date" class="form-control form-control-sm" id="iDate"></div>
-    <div class="col-auto fw-semibold small text-muted">Адрес:</div>
-    <div class="col-sm-3"><input class="form-control form-control-sm" id="iAddress" placeholder="Адрес объекта"></div>
-  </div>
-</div>
-
-<!-- CONTROLS -->
-<div class="container-fluid px-3 py-2 bg-light border-bottom no-print">
-  <div class="row g-2 align-items-center flex-wrap">
-    <div class="col-auto fw-semibold small">Коэф. сложности:</div>
-    <div class="col-auto">
-      <input type="range" class="form-range" id="complexityRange" min="1" max="1.5" step="0.05" value="1" oninput="onComplexity(this.value)" style="width:120px">
-    </div>
-    <div class="col-auto"><span id="complexityVal" class="badge bg-secondary">×1.00</span></div>
-    <div class="col-auto text-muted">|</div>
-    <div class="col-auto fw-semibold small">НДС:</div>
-    <div class="col-auto d-flex align-items-center gap-1">
-      <div class="form-check form-switch mb-0">
-        <input class="form-check-input" type="checkbox" id="vatCheck" onchange="recalc()">
-        <label class="form-check-label small" for="vatCheck">Вкл.</label>
+  <!-- STEP 1: CLIENT -->
+  <div class="screen active" id="s-client">
+    <div class="client-form">
+      <div class="q-title">Данные клиента</div>
+      <div class="q-sub">Все поля необязательны — можно пропустить</div>
+      <div class="field-group">
+        <div>
+          <div class="field-label">Имя клиента</div>
+          <input class="tf" id="f-client" placeholder="Например: Иванов Александр">
+        </div>
+        <div>
+          <div class="field-label">Телефон</div>
+          <input class="tf" id="f-phone" placeholder="+7 (___) ___-__-__">
+        </div>
+        <div>
+          <div class="field-label">Адрес объекта</div>
+          <input class="tf" id="f-addr" placeholder="Например: ул. Садовая, 12">
+        </div>
+        <div>
+          <div class="field-label">Примечание</div>
+          <input class="tf" id="f-note" placeholder="Особые условия, сроки...">
+        </div>
       </div>
-      <input type="number" class="form-control form-control-sm" id="vatRate" value="20" min="0" max="30" style="width:52px" oninput="recalc()">
-      <span class="text-muted small">%</span>
-    </div>
-    <div class="col-auto text-muted">|</div>
-    <div class="col-auto fw-semibold small">Наценка на работы:</div>
-    <div class="col-auto d-flex align-items-center gap-1">
-      <input type="number" class="form-control form-control-sm" id="markupWork" value="0" min="0" max="200" step="5" style="width:60px" oninput="recalc()">
-      <span class="text-muted small">%</span>
-    </div>
-    <div class="col-auto fw-semibold small">Наценка на материалы:</div>
-    <div class="col-auto d-flex align-items-center gap-1">
-      <input type="number" class="form-control form-control-sm" id="markupMat" value="10" min="0" max="200" step="5" style="width:60px" oninput="recalc()">
-      <span class="text-muted small">%</span>
-    </div>
-    <div class="col-auto text-muted">|</div>
-    <div class="col-auto">
-      <button class="btn btn-sm btn-outline-primary" onclick="openAddModal('works')"><i class="bi bi-plus-lg me-1"></i>Добавить работу</button>
-      <button class="btn btn-sm btn-outline-purple ms-1" onclick="openAddModal('materials')" style="color:#6610f2;border-color:#6610f2"><i class="bi bi-plus-lg me-1"></i>Добавить материал</button>
-    </div>
-  </div>
-</div>
-
-<!-- HINT -->
-<div class="container-fluid px-3 py-1 no-print" style="background:#e8f5e9;border-bottom:1px solid #b7dfca">
-  <small class="text-muted"><b style="color:var(--brand)">Как работать:</b> ① Заполни проект и клиента → ② Добавь работы и материалы → ③ Нажми Печать/PDF</small>
-</div>
-
-<!-- WORKS TABLE -->
-<div class="container-fluid px-3 pt-3">
-  <div class="card mb-3">
-    <div class="card-header py-2 fw-bold" style="background:#e8f5e9">
-      <i class="bi bi-tools me-2"></i>Работы
-    </div>
-    <div class="card-body p-0">
-      <table class="table table-sm table-bordered tbl mb-0" id="worksTable">
-        <thead>
-          <tr>
-            <th style="width:36px">#</th>
-            <th>Наименование</th>
-            <th>Раздел</th>
-            <th style="width:80px">Ед. изм.</th>
-            <th style="width:80px">Кол-во</th>
-            <th style="width:110px" class="num">Цена (₽)</th>
-            <th style="width:120px" class="num">Сумма (₽)</th>
-            <th style="width:32px" class="no-print"></th>
-          </tr>
-        </thead>
-        <tbody id="worksBody">
-          <tr id="worksEmpty"><td colspan="8" class="text-center text-muted py-3">Нет позиций. Нажмите «Добавить работу»</td></tr>
-        </tbody>
-        <tfoot>
-          <tr class="sec-total">
-            <td colspan="6" class="text-end">Итого работы:</td>
-            <td class="num" id="worksTotalCell">0 ₽</td>
-            <td class="no-print"></td>
-          </tr>
-        </tfoot>
-      </table>
-    </div>
-  </div>
-
-  <!-- MATERIALS TABLE -->
-  <div class="card mb-3">
-    <div class="card-header py-2 fw-bold" style="background:#f3e8ff">
-      <i class="bi bi-box-seam me-2"></i>Материалы
-    </div>
-    <div class="card-body p-0">
-      <table class="table table-sm table-bordered tbl mb-0" id="materialsTable">
-        <thead>
-          <tr>
-            <th style="width:36px">#</th>
-            <th>Наименование</th>
-            <th>Раздел</th>
-            <th style="width:80px">Ед. изм.</th>
-            <th style="width:80px">Кол-во</th>
-            <th style="width:110px" class="num">Цена (₽)</th>
-            <th style="width:120px" class="num">Сумма (₽)</th>
-            <th style="width:32px" class="no-print"></th>
-          </tr>
-        </thead>
-        <tbody id="materialsBody">
-          <tr id="materialsEmpty"><td colspan="8" class="text-center text-muted py-3">Нет позиций. Нажмите «Добавить материал»</td></tr>
-        </tbody>
-        <tfoot>
-          <tr class="sec-total">
-            <td colspan="6" class="text-end">Итого материалы:</td>
-            <td class="num" id="materialsTotalCell">0 ₽</td>
-            <td class="no-print"></td>
-          </tr>
-        </tfoot>
-      </table>
-    </div>
-  </div>
-
-  <!-- SUMMARY -->
-  <div class="card summary-card mb-4">
-    <div class="card-header fw-bold"><i class="bi bi-calculator-fill me-2"></i>Итого по смете</div>
-    <div class="card-body p-0">
-      <table class="table table-sm table-bordered mb-0" id="summaryTable">
-        <tbody id="summaryBody"></tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<!-- ADD MODAL -->
-<div class="modal fade" id="addModal" tabindex="-1">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header py-2">
-        <h6 class="modal-title fw-bold" id="addModalTitle">Добавить позицию</h6>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <div class="row g-2 mb-3">
-          <div class="col-12">
-            <input class="form-control" id="catalogSearch" placeholder="Поиск по названию или разделу..." oninput="filterCatalog()">
-          </div>
-        </div>
-        <div class="mb-2">
-          <select class="form-select form-select-sm" id="catalogSectionFilter" onchange="filterCatalog()">
-            <option value="">Все разделы</option>
-          </select>
-        </div>
-        <div style="max-height:320px;overflow-y:auto;border:1px solid #dee2e6;border-radius:4px" id="catalogList"></div>
-        <hr>
-        <div class="fw-semibold small mb-2">Или добавить вручную:</div>
-        <div class="row g-2">
-          <div class="col-5"><input class="form-control form-control-sm" id="manualName" placeholder="Наименование"></div>
-          <div class="col-2"><input class="form-control form-control-sm" id="manualUnit" placeholder="Ед. изм."></div>
-          <div class="col-2"><input type="number" class="form-control form-control-sm" id="manualQty" value="1" min="0" step="0.1" placeholder="Кол-во"></div>
-          <div class="col-3"><input type="number" class="form-control form-control-sm" id="manualPrice" value="0" min="0" placeholder="Цена (₽)"></div>
-        </div>
-        <button class="btn btn-sm btn-outline-secondary mt-2" onclick="addManualRow()"><i class="bi bi-plus-lg me-1"></i>Добавить вручную</button>
+      <div class="btn-row">
+        <button class="btn-primary" id="btn-next-client">Выбрать разделы →</button>
+        <button class="btn-ghost" onclick="goTo(2)">Пропустить</button>
       </div>
     </div>
   </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-// ─── State ────────────────────────────────────────────────────────────────────
-let catalog = { works: [], materials: [] };
-let works = [];
-let materials = [];
-let complexityCoeff = 1.0;
-let currentModalType = 'works'; // 'works' | 'materials'
-let addModal;
+  <!-- STEP 2: SELECT SECTIONS -->
+  <div class="screen" id="s-sections">
+    <div class="q-title" style="padding-top:24px">Разделы работ</div>
+    <div class="q-sub">Выберите все применимые — по каждому заполните работы отдельно</div>
+    <div class="sec-grid" id="sec-grid"></div>
+    <div class="btn-row">
+      <button class="btn-back" onclick="goTo(1)">←</button>
+      <button class="btn-primary" id="btn-next-sections">Заполнить работы →</button>
+      <span class="sel-counter" id="sec-counter">ничего не выбрано</span>
+    </div>
+  </div>
 
-// ─── Init ────────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('iDate').value = new Date().toISOString().slice(0, 10);
-  addModal = new bootstrap.Modal(document.getElementById('addModal'));
-  loadCatalog();
-  loadDraftSilent();
-});
+  <!-- STEP 3: FILL SECTIONS -->
+  <div class="screen" id="s-works">
+    <div class="sec-dots" id="sec-dots"></div>
+    <div id="sec-detail-wrap"></div>
+    <div class="btn-row" id="works-btns">
+      <button class="btn-back" id="btn-prev-sec">←</button>
+      <button class="btn-primary" id="btn-next-sec">Следующий раздел →</button>
+    </div>
+  </div>
 
-async function loadCatalog() {
-  try {
-    const res = await fetch('/catalog_v2.json');
-    catalog = await res.json();
-    console.log(`Каталог загружен: ${catalog.works.length} работ, ${catalog.materials.length} материалов`);
-  } catch (e) {
-    console.warn('catalog_v2.json не найден, каталог пуст');
-  }
-}
-
-// ─── Complexity ───────────────────────────────────────────────────────────────
-function onComplexity(v) {
-  complexityCoeff = parseFloat(v);
-  document.getElementById('complexityVal').textContent = `×${complexityCoeff.toFixed(2)}`;
-  recalc();
-}
-
-// ─── Add rows ─────────────────────────────────────────────────────────────────
-function openAddModal(type) {
-  currentModalType = type;
-  document.getElementById('addModalTitle').textContent = type === 'works' ? 'Добавить работу' : 'Добавить материал';
-  document.getElementById('catalogSearch').value = '';
-  document.getElementById('manualName').value = '';
-  document.getElementById('manualUnit').value = type === 'works' ? 'м2' : 'м2';
-  document.getElementById('manualQty').value = '1';
-  document.getElementById('manualPrice').value = '0';
-
-  // Populate section filter
-  const items = type === 'works' ? catalog.works : catalog.materials;
-  const sections = [...new Set(items.map(i => i.section))].sort();
-  const sel = document.getElementById('catalogSectionFilter');
-  sel.innerHTML = '<option value="">Все разделы</option>' + sections.map(s => `<option>${s}</option>`).join('');
-
-  filterCatalog();
-  addModal.show();
-}
-
-function filterCatalog() {
-  const q = document.getElementById('catalogSearch').value.toLowerCase();
-  const sec = document.getElementById('catalogSectionFilter').value;
-  const items = currentModalType === 'works' ? catalog.works : catalog.materials;
-  const filtered = items.filter(i => {
-    const matchQ = !q || i.name.toLowerCase().includes(q) || (i.section||'').toLowerCase().includes(q) || (i.subsection||'').toLowerCase().includes(q);
-    const matchS = !sec || i.section === sec;
-    return matchQ && matchS;
-  });
-
-  const list = document.getElementById('catalogList');
-  if (!filtered.length) {
-    list.innerHTML = '<div class="p-3 text-center text-muted small">Ничего не найдено</div>';
-    return;
-  }
-  list.innerHTML = filtered.map(item => `
-    <div class="catalog-item px-3 py-2 border-bottom d-flex justify-content-between align-items-center" onclick="addFromCatalog(${JSON.stringify(item).replace(/"/g,'&quot;')})">
+  <!-- STEP 4: SUMMARY -->
+  <div class="screen" id="s-summary">
+    <div class="q-title" style="padding-top:16px">Смета</div>
+    <div class="coef-row" style="margin-top:16px">
+      <div class="coef-label">Коэффициент сложности объекта</div>
+      <input type="range" id="coef-slider" min="1" max="1.5" step="0.1" value="1">
+      <span class="coef-val" id="coef-val">×1.0</span>
+    </div>
+    <div class="summary-wrap">
+      <div class="summary-sections" id="summary-sections"></div>
       <div>
-        <div class="fw-semibold">${item.name}</div>
-        <small class="text-muted">${item.section}${item.subsection ? ' / ' + item.subsection : ''}</small>
-      </div>
-      <div class="text-end ms-3 flex-shrink-0">
-        <span class="text-muted small">${item.unit}</span>
-        <span class="fw-semibold ms-2">${fmt(item.price)} ₽</span>
+        <div class="cli-card" id="cli-card"></div>
+        <div class="totals-card" id="totals-card"></div>
+        <div class="btn-row" style="margin-top:14px">
+          <button class="btn-back" onclick="goTo(3)">←</button>
+          <button class="btn-ghost" onclick="window.print()">Печать</button>
+          <button class="btn-primary" onclick="resetAll()">Новая смета</button>
+        </div>
       </div>
     </div>
-  `).join('');
+  </div>
+</div>
+
+<script>
+const CATALOG = {"sections": [{"id": "Мощение", "name": "Мощение", "subsections": {"Прочее по мощению": [{"id": "RWORK-0002", "name": "Антисептирование пиломатериалов с обеих сторон", "unit": "м2", "price": 250.0, "type": "Работа"}, {"id": "RWORK-0054", "name": "Монтаж доски", "unit": "м2", "price": 650.0, "type": "Работа"}, {"id": "RWORK-0093", "name": "Подрезка плитки", "unit": "м.пог.", "price": 700.0, "type": "Работа"}, {"id": "RWORK-0109", "name": "Укрепление крайнего ряда мощения", "unit": "м.пог.", "price": 600.0, "type": "Работа"}, {"id": "RWORK-0110", "name": "Уплотнение основания виброплитой", "unit": "м2", "price": 80.0, "type": "Работа"}, {"id": "RWORK-0130", "name": "Устройство закладных из 3-х труб d=110мм", "unit": "м.пог.", "price": 500.0, "type": "Работа"}, {"id": "RWORK-0137", "name": "Устройство набивного финишного покрытия из гравия (40мм) с мытьем", "unit": "м2", "price": 200.0, "type": "Работа"}], "Техника и механизмы": [{"id": "RWORK-0004", "name": "Аренда виброплиты 140кг", "unit": "сут.", "price": 2300.0, "type": "Техника"}, {"id": "RWORK-0006", "name": "Аренда мотобура", "unit": "сут.", "price": 5500.0, "type": "Техника"}, {"id": "RWORK-0008", "name": "Аренда торцовочной пилы", "unit": "сут.", "price": 770.0, "type": "Техника"}], "Бетон и конструктив": [{"id": "RWORK-0009", "name": "Армирование", "unit": "м.пог.", "price": 350.0, "type": "Работа"}, {"id": "RWORK-0013", "name": "Восстановление бетонной отмостки", "unit": "м2", "price": 6500.0, "type": "Работа"}, {"id": "RWORK-0028", "name": "Грунтование бетонной отмостки в 2 слоя", "unit": "м2", "price": 60.0, "type": "Работа"}, {"id": "RWORK-0036", "name": "Заливка бетона", "unit": "м3", "price": 9500.0, "type": "Работа"}, {"id": "RWORK-0064", "name": "Монтаж/демонтаж опалубки", "unit": "м.пог.", "price": 450.0, "type": "Работа"}, {"id": "RWORK-0092", "name": "Подпиливание бетона подпорных стенок", "unit": "м.пог.", "price": 580.0, "type": "Работа"}, {"id": "RWORK-0118", "name": "Устройство временной съемной опалубки", "unit": "м.пог.", "price": 100.0, "type": "Работа"}, {"id": "RWORK-0136", "name": "Устройство монтажного слоя из отсева с добавлением цемента (40мм)", "unit": "м2", "price": 220.0, "type": "Работа"}, {"id": "RWORK-0157", "name": "Чистка бетонной отмостки", "unit": "м2", "price": 50.0, "type": "Работа"}], "Подготовка и демонтаж": [{"id": "RWORK-0021", "name": "Выемка грунта (вручную)", "unit": "м3", "price": 1100.0, "type": "Работа"}, {"id": "RWORK-0022", "name": "Выемка грунта (механическая)", "unit": "м3", "price": 800.0, "type": "Работа"}, {"id": "RWORK-0079", "name": "Обратная засыпка с послойной трамбовкой вручную", "unit": "м3", "price": 900.0, "type": "Работа"}, {"id": "RWORK-0087", "name": "Перемещение камня по участку", "unit": "м3", "price": 900.0, "type": "Работа"}, {"id": "RWORK-0088", "name": "Перемещение песка по участку", "unit": "м3", "price": 600.0, "type": "Работа"}, {"id": "RWORK-0156", "name": "Частичный демонтаж мощения", "unit": "м2", "price": 950.0, "type": "Работа"}], "Конструкции и отделка": [{"id": "RWORK-0038", "name": "Изготовление и монтаж грядок в теплице", "unit": "м.пог.", "price": 850.0, "type": "Работа"}, {"id": "RWORK-0039", "name": "Изготовление и монтаж уличных грядок", "unit": "м.пог.", "price": 850.0, "type": "Работа"}, {"id": "RWORK-0046", "name": "монтаж алюминиевого каркаса с остеклением", "unit": "компл", "price": 30000.0, "type": "Работа"}, {"id": "RWORK-0058", "name": "Монтаж каркаса на бетонную стенку", "unit": "м2", "price": 450.0, "type": "Работа"}, {"id": "RWORK-0083", "name": "окраска в цвет по RAL", "unit": "компл", "price": 26400.0, "type": "Работа"}, {"id": "RWORK-0084", "name": "Окраска доски в один слой с фасадной стороны и торцов", "unit": "м2", "price": 250.0, "type": "Работа"}], "Водоотвод в зоне мощения": [{"id": "RWORK-0052", "name": "Монтаж дождеприемника", "unit": "шт", "price": 1500.0, "type": "Работа"}, {"id": "RWORK-0133", "name": "Устройство ливневой системы водоотвода (глубина 700мм)", "unit": "м.пог.", "price": 600.0, "type": "Работа"}], "Покрытие": [{"id": "RWORK-0066", "name": "Мощение брусчаткой габбро 100*80*50мм на отсев (пешеходная часть)", "unit": "м2", "price": 3400.0, "type": "Работа"}, {"id": "RWORK-0067", "name": "Мощение брусчаткой габбро 80*80*80мм на отсев (проезжая часть)", "unit": "м2", "price": 3700.0, "type": "Работа"}, {"id": "RWORK-0068", "name": "Мощение брусчаткой пиленной из шунгитного сланца на отсев", "unit": "м2", "price": 2700.0, "type": "Работа"}, {"id": "RWORK-0069", "name": "Мощение гранитной брусчаткой (без рисунка)", "unit": "м2", "price": 2200.0, "type": "Работа"}, {"id": "RWORK-0070", "name": "Мощение колотым амфиболитом", "unit": "м2", "price": 2300.0, "type": "Работа"}, {"id": "RWORK-0071", "name": "Мощение пилено-колотрой гранитной брусчаткой 100х100х50мм", "unit": "м2", "price": 1980.0, "type": "Работа"}, {"id": "RWORK-0072", "name": "Мощение плитами", "unit": "м2", "price": 950.0, "type": "Работа"}, {"id": "RWORK-0073", "name": "Мощение плитами согласно схеме раскладки", "unit": "м2", "price": 2900.0, "type": "Работа"}, {"id": "RWORK-0074", "name": "Мощение ТБП", "unit": "м2", "price": 1600.0, "type": "Работа"}, {"id": "RWORK-0075", "name": "Мощение ТБП 60мм", "unit": "м2", "price": 1300.0, "type": "Работа"}, {"id": "RWORK-0076", "name": "Мощение шунгитным сланцем, рваным", "unit": "м2", "price": 3900.0, "type": "Работа"}, {"id": "RWORK-0112", "name": "Устройство бесшовного покрытия отмостки из резиновой крошки, 10мм (с материалами)", "unit": "м2", "price": 1150.0, "type": "Работа"}, {"id": "RWORK-0124", "name": "Устройство декинга", "unit": "м2", "price": 6500.0, "type": "Работа"}, {"id": "RWORK-0142", "name": "Устройство несущего щебнистого слоя (250мм) под пешеходное мощение из щебня 20-40мм с проливом водой и трамбовкой с расклинцовкой щебнем 5-20мм", "unit": "м2", "price": 510.0, "type": "Работа"}, {"id": "RWORK-0153", "name": "Устройство спортивного ударопоглощающего покрытия из резиновой крошки", "unit": "м2", "price": 2550.0, "type": "Работа"}], "Основание": [{"id": "RWORK-0089", "name": "Перемещение щебня по участку", "unit": "м3", "price": 800.0, "type": "Работа"}, {"id": "RWORK-0096", "name": "Прометание мощения отсевом/ песком", "unit": "м2", "price": 150.0, "type": "Работа"}, {"id": "RWORK-0107", "name": "Укладка геотекстиля", "unit": "м2", "price": 40.0, "type": "Работа"}, {"id": "RWORK-0119", "name": "Устройство выравнивающего слоя (5-20мм)", "unit": "м2", "price": 250.0, "type": "Работа"}, {"id": "RWORK-0121", "name": "Устройство газонного ложа для обыкновенного газона: грунт плодородный (торфогрунт:песок:дерновая земля - 1:2:3), 150мм", "unit": "м2", "price": 195.0, "type": "Работа"}, {"id": "RWORK-0123", "name": "Устройство гравийного покрытия", "unit": "м2", "price": 900.0, "type": "Работа"}, {"id": "RWORK-0126", "name": "Устройство дорожных одежд в парковочной зоне с расклинцовкой, трамбовкой и проливом водой", "unit": "м2", "price": 860.0, "type": "Работа"}, {"id": "RWORK-0127", "name": "Устройство дорожных одежд в пешеходной зоне с расклинцовкой, трамбовкой и проливом водой", "unit": "м2", "price": 640.0, "type": "Работа"}, {"id": "RWORK-0134", "name": "Устройство монтажного слоя из отсева (4см)", "unit": "м2", "price": 70.0, "type": "Работа"}, {"id": "RWORK-0135", "name": "Устройство монтажного слоя из отсева (70мм)", "unit": "м2", "price": 230.0, "type": "Работа"}, {"id": "RWORK-0138", "name": "Устройство набивного финишного покрытия из отсева (40мм)", "unit": "м2", "price": 130.0, "type": "Работа"}, {"id": "RWORK-0139", "name": "Устройство несущего щебнистого слоя (120мм) из щебня 20-40мм с проливом водой и трамбовкой с расклинцовкой щебнем 5-20мм", "unit": "м2", "price": 289.0, "type": "Работа"}, {"id": "RWORK-0140", "name": "Устройство несущего щебнистого слоя (150мм) из щебня 20-40мм с проливом водой и трамбовкой с расклинцовкой щебнем 5-20мм", "unit": "м2", "price": 480.0, "type": "Работа"}, {"id": "RWORK-0141", "name": "Устройство несущего щебнистого слоя (150мм) из щебня 20-40мм с проливом водой и трамбовкой с расклинцовкой щебнем 5-20мм (пешеходная зона)", "unit": "м2", "price": 400.0, "type": "Работа"}, {"id": "RWORK-0144", "name": "Устройство песчаного слоя (100мм)", "unit": "м2", "price": 120.0, "type": "Работа"}, {"id": "RWORK-0145", "name": "Устройство песчаного слоя (150мм)", "unit": "м2", "price": 165.0, "type": "Работа"}, {"id": "RWORK-0146", "name": "Устройство песчаного слоя (180мм)", "unit": "м2", "price": 198.0, "type": "Работа"}, {"id": "RWORK-0147", "name": "Устройство песчаного слоя (230мм)", "unit": "м2", "price": 253.0, "type": "Работа"}, {"id": "RWORK-0148", "name": "Устройство песчаного слоя (250мм)", "unit": "м2", "price": 275.0, "type": "Работа"}, {"id": "RWORK-0149", "name": "Устройство песчаного слоя (300мм)", "unit": "м2", "price": 330.0, "type": "Работа"}, {"id": "RWORK-0150", "name": "Устройство песчаного слоя (600мм)", "unit": "м2", "price": 660.0, "type": "Работа"}], "Бордюры и ограничения": [{"id": "RWORK-0113", "name": "Устройство бордюра из габбро-диабаза в два ряда на бетон 80*80*80мм", "unit": "м.пог.", "price": 1900.0, "type": "Работа"}, {"id": "RWORK-0114", "name": "Устройство бордюра из габбро-диабаза в один ряд на бетон 80*80*80мм", "unit": "м.пог.", "price": 1400.0, "type": "Работа"}, {"id": "RWORK-0143", "name": "Устройство ограничительного бордюра из металлического уголка 50*50мм", "unit": "м.пог.", "price": 700.0, "type": "Работа"}, {"id": "RWORK-0158", "name": "Установка пластикового бордюра", "unit": "пог.м", "price": 180.0, "type": "Работа"}]}, "materials": [{"id": "RMAT-0001", "name": "Амфиболит колотый 50*100*100мм", "unit": "м2", "sub": "Покрытие"}, {"id": "RMAT-0003", "name": "Антисептик Pinotex Base", "unit": "л", "sub": "Конструкции и отделка"}, {"id": "RMAT-0004", "name": "арматура рифленая, 10мм", "unit": "м.пог.", "sub": "Прочее по мощению"}, {"id": "RMAT-0005", "name": "Арматура рифленая, 12мм", "unit": "м.пог.", "sub": "Прочее по мощению"}, {"id": "RMAT-0008", "name": "Бордюр металлический", "unit": "м.пог.", "sub": "Бордюры и ограничения"}, {"id": "RMAT-0009", "name": "Бордюр пластиковый Plastbort с крепежом", "unit": "м.пог.", "sub": "Бордюры и ограничения"}, {"id": "RMAT-0012", "name": "Брусок сухой сосна 30х45х3000 мм сорт АВ", "unit": "шт", "sub": "Конструкции и отделка"}, {"id": "RMAT-0013", "name": "Брусчатка гранитная, 100х100х100мм", "unit": "м2", "sub": "Покрытие"}, {"id": "RMAT-0014", "name": "Брусчатка гранитная, 100х100х50мм", "unit": "м2", "sub": "Покрытие"}, {"id": "RMAT-0015", "name": "Брусчатка пиленная, шунгитный сланец", "unit": "м2", "sub": "Покрытие"}, {"id": "RMAT-0016", "name": "Брусчатка пилено-колотая, гранит 100х100х50мм", "unit": "м2", "sub": "Покрытие"}, {"id": "RMAT-0017", "name": "Брусчатка ТБП (простая), 60мм", "unit": "м2", "sub": "Покрытие"}, {"id": "RMAT-0018", "name": "Брусчатка ТБП Антик, 197x97x60мм", "unit": "м2", "sub": "Покрытие"}, {"id": "RMAT-0019", "name": "Брусчатка ТБП Классико Б.3.КО.6", "unit": "м2", "sub": "Покрытие"}, {"id": "RMAT-0020", "name": "Габбро-диабаз 100*80*50мм", "unit": "м2", "sub": "Покрытие"}, {"id": "RMAT-0021", "name": "Габбро-диабаз 80*80*80мм", "unit": "м2", "sub": "Покрытие"}, {"id": "RMAT-0023", "name": "Газон рулонный бюджетный, 0.8м.кв.", "unit": "рул.", "sub": "Прочее по мощению"}, {"id": "RMAT-0024", "name": "Газон рулонный бюджетный, 1м.кв.", "unit": "рул.", "sub": "Прочее по мощению"}, {"id": "RMAT-0025", "name": "Геотекстиль, 200г/м2", "unit": "м2", "sub": "Основание"}, {"id": "RMAT-0026", "name": "Геотекстиль, 300г/м2", "unit": "м2", "sub": "Основание"}, {"id": "RMAT-0028", "name": "Гидроизоляция гряд и стенок фундамента теплицы", "unit": "м.пог.", "sub": "Конструкции и отделка"}, {"id": "RMAT-0029", "name": "Гравий (щебень гр. 20-40мм)", "unit": "м3", "sub": "Основание"}, {"id": "RMAT-0030", "name": "Гравий карьерный 5-20мм", "unit": "м3", "sub": "Основание"}, {"id": "RMAT-0031", "name": "Гравий колотый", "unit": "т", "sub": "Основание"}, {"id": "RMAT-0032", "name": "Грунт дерновый /просеивание местного грунта", "unit": "м3", "sub": "Прочее по мощению"}, {"id": "RMAT-0034", "name": "Грунтовка концентрат", "unit": "л", "sub": "Прочее по мощению"}, {"id": "RMAT-0035", "name": "Диск алмазный по камню d=230ммхМ14 (гранит)", "unit": "шт", "sub": "Конструкции и отделка"}, {"id": "RMAT-0036", "name": "Диск по металлу", "unit": "шт", "sub": "Конструкции и отделка"}, {"id": "RMAT-0038", "name": "Дождеприемник пластик. 300х300х300 мм в сборе с решеткой чугунной", "unit": "шт", "sub": "Водоотвод в зоне мощения"}, {"id": "RMAT-0039", "name": "доска для опалубки, 25*100*3000мм", "unit": "м.пог.", "sub": "Конструкции и отделка"}, {"id": "RMAT-0040", "name": "Доска импрегнированная 45*145*6000мм, строганая", "unit": "шт", "sub": "Конструкции и отделка"}, {"id": "RMAT-0041", "name": "Доска импрегнированная 50*100*6000мм, обрезная", "unit": "шт", "sub": "Конструкции и отделка"}, {"id": "RMAT-0042", "name": "Доска обрезн., сосна, 20х125х3000мм", "unit": "шт", "sub": "Конструкции и отделка"}, {"id": "RMAT-0043", "name": "Доска обрезн., сосна, 20х145х3000мм", "unit": "шт", "sub": "Конструкции и отделка"}, {"id": "RMAT-0044", "name": "Доска террасная негофрированная, термообработанная сосна 145*28*6000мм", "unit": "шт", "sub": "Конструкции и отделка"}, {"id": "RMAT-0046", "name": "Дюбель-гвоздь 8x100мм", "unit": "уп.", "sub": "Прочее по мощению"}, {"id": "RMAT-0047", "name": "Затирка для широких швов Camonica, 25кг", "unit": "шт", "sub": "Прочее по мощению"}, {"id": "RMAT-0050", "name": "Клей по дереву, 0,5л", "unit": "шт", "sub": "Конструкции и отделка"}, {"id": "RMAT-0058", "name": "Краска Pinotex Extreme One. Колеровка утренний туман 005", "unit": "л", "sub": "Конструкции и отделка"}, {"id": "RMAT-0062", "name": "линия подвязки", "unit": "шт", "sub": "Прочее по мощению"}, {"id": "RMAT-0065", "name": "Мастика битумная", "unit": "кг", "sub": "Бетон и конструктив"}, {"id": "RMAT-0068", "name": "Метизы", "unit": "кг", "sub": "Прочее по мощению"}, {"id": "RMAT-0072", "name": "Отсев гранитный", "unit": "м3", "sub": "Основание"}, {"id": "RMAT-0073", "name": "Отсев гранитный 2-5мм", "unit": "м3", "sub": "Основание"}, {"id": "RMAT-0077", "name": "Песок мелкий сеяный для швов, 50кг", "unit": "шт", "sub": "Основание"}, {"id": "RMAT-0078", "name": "Песок строительный, 50кг", "unit": "шт", "sub": "Основание"}, {"id": "RMAT-0079", "name": "пленка техническая 150мк", "unit": "м2", "sub": "Прочее по мощению"}, {"id": "RMAT-0080", "name": "Плита бетонная, 40мм", "unit": "м2", "sub": "Покрытие"}, {"id": "RMAT-0081", "name": "Плита бетонная: толщина 50мм, ширина 0,36м, длина от 1 до 1,8м", "unit": "м2", "sub": "Покрытие"}, {"id": "RMAT-0082", "name": "Покрытие спортивное (однослойное ударопоглощающее резиновое на однокомпонентном полиуретановом связующем толщиной 15мм )", "unit": "м2", "sub": "Покрытие"}, {"id": "RMAT-0083", "name": "Портландцемент М400, 50кг", "unit": "шт", "sub": "Бетон и конструктив"}, {"id": "RMAT-0086", "name": "Профиль алюминиевый", "unit": "компл", "sub": "Конструкции и отделка"}, {"id": "RMAT-0088", "name": "Ровнитель для бетона Plitonit, 25кг", "unit": "шт", "sub": "Бетон и конструктив"}, {"id": "RMAT-0091", "name": "Саморезы нержавеющие, 5см (1500шт.)", "unit": "уп.", "sub": "Конструкции и отделка"}, {"id": "RMAT-0092", "name": "Саморезы по дереву", "unit": "уп.", "sub": "Конструкции и отделка"}, {"id": "RMAT-0093", "name": "Сверло по дереву 8*100мм", "unit": "шт", "sub": "Конструкции и отделка"}, {"id": "RMAT-0097", "name": "Сетка кладочная яч. 50х50мм d3,5-3,8мм, 0,51х2м", "unit": "шт", "sub": "Бетон и конструктив"}, {"id": "RMAT-0098", "name": "Сланец шунгитный (рваный), 40мм", "unit": "м2", "sub": "Покрытие"}, {"id": "RMAT-0104", "name": "Труба наружной канализации d110мм SN4", "unit": "м.пог.", "sub": "Прочее по мощению"}, {"id": "RMAT-0106", "name": "Уголок металл., 50*50*5мм", "unit": "м.пог.", "sub": "Бордюры и ограничения"}, {"id": "RMAT-0107", "name": "Удобрение минеральное длительного действия", "unit": "кг", "sub": "Прочее по мощению"}, {"id": "RMAT-0110", "name": "Установка бордюра металлического", "unit": "м.пог.", "sub": "Бордюры и ограничения"}, {"id": "RMAT-0112", "name": "Установка бордюра пластикового", "unit": "м.пог.", "sub": "Бордюры и ограничения"}, {"id": "RMAT-0113", "name": "фанера 12х1220*2440мм (для опалубки)", "unit": "шт", "sub": "Бетон и конструктив"}, {"id": "RMAT-0121", "name": "Электроды", "unit": "уп.", "sub": "Конструкции и отделка"}, {"id": "RMAT-0122", "name": "Песок строительный, м³", "unit": "м3", "sub": "Основание"}, {"id": "RMAT-0123", "name": "Бордюрный камень бетонный", "unit": "шт", "sub": "Бордюры и ограничения"}]}, {"id": "Газон", "name": "Газон", "subsections": {"Подготовка основания": [{"id": "RWORK-0016", "name": "Выборка ложа от чистовой отметки (вручную)", "unit": "м3", "price": 2000.0, "type": "Работа"}, {"id": "RWORK-0086", "name": "Перекопка с внесением крупного песка и с дальнейшим выравниванием, выведением уклонов и уплотнением", "unit": "м2", "price": 470.0, "type": "Работа"}, {"id": "RWORK-0151", "name": "Устройство поверхностного дренажного слоя из песка с прикаткой, 2см", "unit": "м2", "price": 60.0, "type": "Работа"}, {"id": "RWORK-0168", "name": "Просеивание местного грунта", "unit": "м3", "price": 0.0, "type": "Работа"}], "Газон и укладка": [{"id": "RWORK-0081", "name": "Обрезка краев газона криволинейная", "unit": "м.пог.", "price": 220.0, "type": "Работа"}, {"id": "RWORK-0120", "name": "Устройство газонного ложа", "unit": "м2", "price": 680.0, "type": "Работа"}, {"id": "RWORK-0122", "name": "Устройство газонного ложа для обыкновенного газона: грунт плодородный (торфогрунт:песок:дерновая земля - 1:2:3), 160мм", "unit": "м2", "price": 208.0, "type": "Работа"}, {"id": "RWORK-0152", "name": "Устройство рулонного газона на подготовленном основании", "unit": "м2", "price": 260.0, "type": "Работа"}], "Бордюры и ограничения": [{"id": "RWORK-0169", "name": "Установка бордюра (криволинейная)", "unit": "м.пог.", "price": 0.0, "type": "Работа"}, {"id": "RWORK-0170", "name": "Установка бордюра ограничивающего (доска, брусок)", "unit": "м.пог.", "price": 0.0, "type": "Работа"}]}, "materials": [{"id": "RMAT-0002", "name": "Анкер крепящий для ландшафтного бордюра (количество для установки по дуге 5шт. на 1м.п.)", "unit": "шт", "sub": "Бордюры и ограничения"}, {"id": "RMAT-0010", "name": "Бордюр пластиковый, 100х8х4.5см", "unit": "м.пог.", "sub": "Бордюры и ограничения"}, {"id": "RMAT-0022", "name": "Газон рулонный \"Универсальный\", 0.8м.кв.", "unit": "рул.", "sub": "Газон и укладка"}, {"id": "RMAT-0076", "name": "Песок крупнозернистый намывной", "unit": "м3", "sub": "Материалы и комплектующие"}, {"id": "RMAT-0101", "name": "Торфогрунт питательный, 300л", "unit": "кипа", "sub": "Материалы и комплектующие"}, {"id": "RMAT-0108", "name": "Удобрение универсальн., газонное", "unit": "кг", "sub": "Газон и укладка"}, {"id": "RMAT-0124", "name": "Семена газонные", "unit": "кг", "sub": "Материалы и комплектующие"}]}, {"id": "Дренаж", "name": "Дренаж", "subsections": {"Техника и механизмы": [{"id": "RWORK-0005", "name": "Аренда виброплиты 70кг", "unit": "сут.", "price": 800.0, "type": "Техника"}, {"id": "RWORK-0097", "name": "Работа трактора", "unit": "маш./смена", "price": 26000.0, "type": "Техника"}], "Земляные и восстановительные работы": [{"id": "RWORK-0014", "name": "Восстановление дернины после устройства дренажа", "unit": "м2", "price": 260.0, "type": "Работа"}, {"id": "RWORK-0017", "name": "Выборка ложа от чистовой отметки в отвал (механическая)", "unit": "м3", "price": 850.0, "type": "Работа"}, {"id": "RWORK-0102", "name": "Снятие дернины", "unit": "м2", "price": 300.0, "type": "Работа"}], "Монтаж системы": [{"id": "RWORK-0055", "name": "Монтаж дренажного колодца h=1,7-2м", "unit": "шт", "price": 6500.0, "type": "Работа"}, {"id": "RWORK-0056", "name": "Монтаж дренажного колодца h=1-1,5м", "unit": "шт", "price": 3800.0, "type": "Работа"}, {"id": "RWORK-0128", "name": "Устройство дренажа на глубине 80-130см", "unit": "м.пог.", "price": 920.0, "type": "Работа"}], "Прочее по дренажу": [{"id": "RWORK-0125", "name": "Устройство деревянной опалубки", "unit": "м.пог.", "price": 150.0, "type": "Работа"}]}, "materials": [{"id": "RMAT-0027", "name": "Герметик", "unit": "шт", "sub": "Материалы и комплектующие"}, {"id": "RMAT-0045", "name": "Доска хвойная сырая, нестроганая 150*25*6000мм (для опалубки)", "unit": "шт", "sub": "Материалы и комплектующие"}, {"id": "RMAT-0051", "name": "Колодец дренажный смотровой 315/276х1000 с дном и крышкой", "unit": "шт", "sub": "Колодцы"}, {"id": "RMAT-0052", "name": "Колодец дренажный смотровой 315/276х1500 с дном и крышкой", "unit": "шт", "sub": "Колодцы"}, {"id": "RMAT-0053", "name": "Колодец дренажный смотровой 460/400х2000мм с дном и крышкой", "unit": "шт", "sub": "Колодцы"}, {"id": "RMAT-0074", "name": "Отсев розовый 0-5мм, 50кг", "unit": "шт", "sub": "Материалы и комплектующие"}, {"id": "RMAT-0087", "name": "Расходные материалы", "unit": "компл", "sub": "Материалы и комплектующие"}, {"id": "RMAT-0103", "name": "Труба дренажная d110 SN6", "unit": "м.пог.", "sub": "Трубопровод"}, {"id": "RMAT-0117", "name": "Щебень гранитный фр. 20-40мм", "unit": "м3", "sub": "Материалы и комплектующие"}, {"id": "RMAT-0118", "name": "Щебень гранитный фр. 5-20мм", "unit": "м3", "sub": "Материалы и комплектующие"}]}, {"id": "Ливневая_канализация", "name": "Ливневая канализация", "subsections": {"Демонтаж": [{"id": "RWORK-0032", "name": "Демонтаж дождеприемников", "unit": "шт", "price": 1500.0, "type": "Работа"}], "Колодцы и перекрытия": [{"id": "RWORK-0048", "name": "Монтаж водоприемных колодцев 923мм с выемкой", "unit": "шт", "price": 15000.0, "type": "Работа"}, {"id": "RWORK-0059", "name": "Монтаж колодцев инспекционных d315мм", "unit": "шт", "price": 3800.0, "type": "Работа"}, {"id": "RWORK-0115", "name": "Устройство врезок в бетонный колодец d110мм", "unit": "шт", "price": 900.0, "type": "Работа"}, {"id": "RWORK-0116", "name": "Устройство врезок в бетонный колодец d160мм", "unit": "шт", "price": 1400.0, "type": "Работа"}, {"id": "RWORK-0117", "name": "Устройство врезок в колодец", "unit": "шт", "price": 350.0, "type": "Работа"}], "Приемные и линейные элементы": [{"id": "RWORK-0053", "name": "Монтаж дождеприемников со встройкой в террасный настил", "unit": "шт", "price": 2200.0, "type": "Работа"}, {"id": "RWORK-0060", "name": "Монтаж лотков дождеприемных с решетками и отводами к ливневой канализации на раствор", "unit": "м.пог.", "price": 1350.0, "type": "Работа"}, {"id": "RWORK-0061", "name": "Монтаж пескоуловителей на раствор", "unit": "шт", "price": 2200.0, "type": "Работа"}], "Монтаж системы": [{"id": "RWORK-0132", "name": "Устройство ливневой системы (монтаж трубы d110мм с уклоном, средняя глубина 700мм), копка и обратная засыпка траншеи", "unit": "м.пог.", "price": 1800.0, "type": "Работа"}]}, "materials": [{"id": "RMAT-0037", "name": "Дождеприемник ДП–30.30-ПП с комплектующими и чугунной решеткой, фасонные элементы", "unit": "шт", "sub": "Приемные и линейные элементы"}, {"id": "RMAT-0054", "name": "Кольцо железобетонное паз/гребень КС10.9 d1000мм", "unit": "шт", "sub": "Колодцы и перекрытия"}, {"id": "RMAT-0055", "name": "Кольцо железобетонное регулировочное КО-6 d840мм", "unit": "шт", "sub": "Колодцы и перекрытия"}, {"id": "RMAT-0056", "name": "Кольцо железобетонное с днищем ДК-10.9 d1000мм", "unit": "шт", "sub": "Колодцы и перекрытия"}, {"id": "RMAT-0059", "name": "Крышка для железобетонного кольца ПП10 d1000мм", "unit": "шт", "sub": "Колодцы и перекрытия"}, {"id": "RMAT-0063", "name": "Лоток пластиковый ЛВ-10.16.12-ПП с решетками ячеистыми чугунными", "unit": "м.пог.", "sub": "Приемные и линейные элементы"}, {"id": "RMAT-0064", "name": "Люк садовый пластиковый черный «ДОМИК» d800мм", "unit": "шт", "sub": "Колодцы и перекрытия"}, {"id": "RMAT-0066", "name": "Мастика битумная, 20л", "unit": "шт", "sub": "Материалы и комплектующие"}, {"id": "RMAT-0069", "name": "Муфта d110мм для врезки в колодец", "unit": "шт", "sub": "Колодцы и перекрытия"}, {"id": "RMAT-0070", "name": "Муфта d160мм для врезки в колодец", "unit": "шт", "sub": "Колодцы и перекрытия"}, {"id": "RMAT-0075", "name": "Пескоуловители пластиковые 500х160х420мм с решетками ячеистыми чугунными", "unit": "шт", "sub": "Приемные и линейные элементы"}, {"id": "RMAT-0102", "name": "Труба двустенная гофрированная d=110мм SN8", "unit": "м.пог.", "sub": "Трубопровод и фасонные части"}, {"id": "RMAT-0105", "name": "Труба наружной канализации d110мм SN8", "unit": "шт", "sub": "Трубопровод и фасонные части"}, {"id": "RMAT-0114", "name": "Фасонные элементы - тройники, соединения, заглушки", "unit": "компл", "sub": "Трубопровод и фасонные части"}, {"id": "RMAT-0115", "name": "Цемент М400, 50кг", "unit": "шт", "sub": "Материалы и комплектующие"}]}, {"id": "Освещение", "name": "Освещение", "subsections": {"Монтаж": [{"id": "RWORK-0047", "name": "Монтаж блоков питания", "unit": "шт", "price": 3500.0, "type": "Работа"}, {"id": "RWORK-0051", "name": "Монтаж диодной ленты подсветки", "unit": "м.пог.", "price": 3000.0, "type": "Работа"}, {"id": "RWORK-0108", "name": "Укладка кабеля с креплением - под настилом, для освещения подпорных стенок, в стойках ограждения", "unit": "м.пог.", "price": 180.0, "type": "Работа"}], "Оборудование и комплектующие": [{"id": "RWORK-0049", "name": "Монтаж встроенных в настил светильников с устройством отверстий в облицовке", "unit": "шт", "price": 1500.0, "type": "Работа"}, {"id": "RWORK-0050", "name": "Монтаж грунтовых светильников", "unit": "шт", "price": 1100.0, "type": "Работа"}, {"id": "RWORK-0057", "name": "Монтаж и сборка щита", "unit": "шт", "price": 20000.0, "type": "Работа"}, {"id": "RWORK-0062", "name": "Монтаж светильников накладных на столбы - въездная зона", "unit": "шт", "price": 1200.0, "type": "Работа"}, {"id": "RWORK-0063", "name": "Монтаж светильников столбиков, розеток", "unit": "шт", "price": 1100.0, "type": "Работа"}, {"id": "RWORK-0094", "name": "Покраска щита и коробов в цвет дома", "unit": "компл", "price": 2000.0, "type": "Работа"}, {"id": "RWORK-0155", "name": "Устройство фундаментов светильников столбиков, розеток", "unit": "шт", "price": 3700.0, "type": "Работа"}, {"id": "RWORK-0167", "name": "Монтаж фасадного освещения", "unit": "точек", "price": 8000.0, "type": "Работа"}], "Кабельная инфраструктура": [{"id": "RWORK-0080", "name": "Обратная засыпка траншеи после прокладки кабеля", "unit": "м.пог.", "price": 400.0, "type": "Работа"}, {"id": "RWORK-0106", "name": "Укладка силового бронированного кабеля с сигнальной лентой", "unit": "м.пог.", "price": 150.0, "type": "Работа"}, {"id": "RWORK-0154", "name": "Устройство траншеи 0,7м с песчаным основанием для кабеля", "unit": "м.пог.", "price": 900.0, "type": "Работа"}], "Пусконаладка": [{"id": "RWORK-0098", "name": "Работы по проверке цепей, параметрированию и настройке оборудования", "unit": "компл", "price": 10000.0, "type": "Работа"}]}, "materials": [{"id": "RMAT-0007", "name": "Блок питания 100Вт", "unit": "шт", "sub": "Оборудование и комплектующие"}, {"id": "RMAT-0048", "name": "Кабель силовой ВБШв нг(А)LS 3*1,5 0,66кВ броня", "unit": "шт", "sub": "Кабельная инфраструктура"}, {"id": "RMAT-0049", "name": "Кабель силовой ВБШв нг(А)LS 3*2,5 0,66кВ броня", "unit": "шт", "sub": "Кабельная инфраструктура"}, {"id": "RMAT-0057", "name": "Короб метал. для подвода кабеля к щиту 100*100мм оцинк., неперфорированный, h=1,5м", "unit": "компл", "sub": "Оборудование и комплектующие"}, {"id": "RMAT-0060", "name": "Лента диодная влагозащищенная, профиль", "unit": "м.пог.", "sub": "Оборудование и комплектующие"}, {"id": "RMAT-0061", "name": "Лента сигнальная 100м", "unit": "шт", "sub": "Кабельная инфраструктура"}, {"id": "RMAT-0071", "name": "Опора ландшафтная для установки светильников в бетон", "unit": "шт", "sub": "Оборудование и комплектующие"}, {"id": "RMAT-0089", "name": "Розетка двойная наружная с заземлением с крышкой ФОРС IP54 ERS22-K03-16-54-DC IEK", "unit": "шт", "sub": "Оборудование и комплектующие"}, {"id": "RMAT-0090", "name": "Розетка садовая Paulmann Rio 94657, столб с двумя розетками", "unit": "шт", "sub": "Оборудование и комплектующие"}, {"id": "RMAT-0094", "name": "Светильник", "unit": "шт", "sub": "Оборудование и комплектующие"}, {"id": "RMAT-0095", "name": "Светильник h=1000", "unit": "шт", "sub": "Оборудование и комплектующие"}, {"id": "RMAT-0096", "name": "Светильник h=600", "unit": "шт", "sub": "Оборудование и комплектующие"}, {"id": "RMAT-0099", "name": "Соединитель CON T3 PIN IP68", "unit": "шт", "sub": "Оборудование и комплектующие"}, {"id": "RMAT-0116", "name": "ЦПС М300, 25кг", "unit": "шт", "sub": "Основания и расходники"}, {"id": "RMAT-0119", "name": "Щебень гранитный фр. 5-20мм, 50кг", "unit": "шт", "sub": "Основания и расходники"}, {"id": "RMAT-0120", "name": "Щит управления ландшафтным освещением (щит DKC 500*600*200мм IP65, кол-во модулей 72 элементы на базе ИЕК, 3 фазы 32А, 8 выходов под защитой УЗО)", "unit": "шт", "sub": "Оборудование и комплектующие"}, {"id": "RMAT-0127", "name": "Светильник грунтовый", "unit": "шт", "sub": "Оборудование и комплектующие"}]}, {"id": "Посадки_и_уход", "name": "Посадки и уход", "subsections": {"Пересадка / удаление растений": [{"id": "RWORK-0025", "name": "Выкопка елей 1-1,5м", "unit": "шт", "price": 1800.0, "type": "Работа"}], "Уход и посадка": [{"id": "RWORK-0082", "name": "Обрезка плодовых деревьев (май и сентябрь)", "unit": "шт", "price": 15000.0, "type": "Работа"}, {"id": "RWORK-0095", "name": "Посадка розы", "unit": "шт", "price": 950.0, "type": "Работа"}, {"id": "RWORK-0159", "name": "Посадка кустарника", "unit": "шт", "price": 800.0, "type": "Работа"}, {"id": "RWORK-0160", "name": "Посадка дерева (до 2м)", "unit": "шт", "price": 2500.0, "type": "Работа"}, {"id": "RWORK-0161", "name": "Посадка дерева (от 2м)", "unit": "шт", "price": 6000.0, "type": "Работа"}, {"id": "RWORK-0162", "name": "Посадка многолетников", "unit": "шт", "price": 350.0, "type": "Работа"}, {"id": "RWORK-0163", "name": "Посадка однолетников", "unit": "шт", "price": 120.0, "type": "Работа"}]}, "materials": []}, {"id": "Земляные_и_планировочные_работы", "name": "Земляные и планировочные работы", "subsections": {"Планировка и подготовка грунта": [{"id": "RWORK-0011", "name": "Вертикальная планировка (геопластика)", "unit": "м2", "price": 360.0, "type": "Работа"}, {"id": "RWORK-0012", "name": "Вертикальная планировка, выемка и подсыпка", "unit": "м3", "price": 1100.0, "type": "Работа"}, {"id": "RWORK-0045", "name": "Мини-геопластика: создание рельефа в лесной зоне", "unit": "м3", "price": 1100.0, "type": "Работа"}], "Геодезия и разбивка": [{"id": "RWORK-0027", "name": "Вынос проекта с корректировкой по месту", "unit": "м2", "price": 40.0, "type": "Работа"}, {"id": "RWORK-0100", "name": "Разметка и нивелировка площадей, задание вертикальных уровней и уклона (геодезическая разбивка)", "unit": "м2", "price": 30.0, "type": "Работа"}], "Материалы": [{"id": "RWORK-0043", "name": "Механическая планировка участка: выемка грунта", "unit": "м3", "price": 500.0, "type": "Работа"}, {"id": "RWORK-0044", "name": "Механическая планировка участка: снятие и подсыпка грунта", "unit": "м3", "price": 400.0, "type": "Работа"}, {"id": "RWORK-0085", "name": "Перекопка верхнего слоя почвы с выбором корневищ и мусора, внесением грунта и песка", "unit": "м2", "price": 400.0, "type": "Работа"}], "Подготовка грунта": [{"id": "RWORK-0101", "name": "Ручная перекопка участка с удалением корней и корневищ", "unit": "м2", "price": 220.0, "type": "Работа"}]}, "materials": [{"id": "RMAT-0033", "name": "Грунт плодородный", "unit": "м3", "sub": "Материалы"}, {"id": "RMAT-0067", "name": "Материалы для разметки", "unit": "компл", "sub": "Материалы"}, {"id": "RMAT-0100", "name": "Торф нейтрализованный, 300л", "unit": "кипа", "sub": "Материалы"}]}, {"id": "Демонтаж_и_расчистка", "name": "Демонтаж и расчистка", "subsections": {"Демонтаж": [{"id": "RWORK-0023", "name": "Выемка кирпича и бетона (с наружной стороны забора) с упаковкой в мешки", "unit": "м.пог.", "price": 1200.0, "type": "Работа"}, {"id": "RWORK-0024", "name": "Выемка строительного мусора из почвы", "unit": "м3", "price": 3500.0, "type": "Работа"}, {"id": "RWORK-0029", "name": "Демонтаж бетона подпорных стенок", "unit": "м3", "price": 3900.0, "type": "Работа"}, {"id": "RWORK-0030", "name": "Демонтаж бетонной стяжки с упаковкой в мешки", "unit": "м.пог.", "price": 950.0, "type": "Работа"}, {"id": "RWORK-0031", "name": "Демонтаж гряд", "unit": "м2", "price": 650.0, "type": "Работа"}, {"id": "RWORK-0099", "name": "Разборка существующего покрытия", "unit": "м2", "price": 700.0, "type": "Работа"}, {"id": "RWORK-0103", "name": "Снятие утрамбованного щебня (бывшая дорожка перед баней)", "unit": "м2", "price": 3650.0, "type": "Работа"}], "Удаление кустарников": [{"id": "RWORK-0026", "name": "Выкопка шиповника", "unit": "шт", "price": 950.0, "type": "Работа"}], "Корчевка и расчистка": [{"id": "RWORK-0042", "name": "Корчевка поросли механическая и ручная очистка участка от выкорчеванной поросли", "unit": "м2", "price": 300.0, "type": "Работа"}], "Удаление деревьев": [{"id": "RWORK-0104", "name": "Спил березы", "unit": "шт", "price": 3800.0, "type": "Работа"}]}, "materials": []}, {"id": "Ступени___пандусы___бетонные_элементы", "name": "Ступени / пандусы / бетонные элементы", "subsections": {"Бетон и армирование": [{"id": "RWORK-0010", "name": "Бетононасос", "unit": "маш./смена", "price": 24000.0, "type": "Техника"}, {"id": "RWORK-0037", "name": "Заливка бетона", "unit": "м3", "price": 9900.0, "type": "Работа"}, {"id": "RWORK-0065", "name": "Монтаж/демонтаж опалубки", "unit": "м.пог.", "price": 990.0, "type": "Работа"}, {"id": "RWORK-0111", "name": "Устройство армокаркасов", "unit": "м3", "price": 2700.0, "type": "Работа"}], "Основание": [{"id": "RWORK-0091", "name": "Подготовка оснований лестниц и пандусов", "unit": "м2", "price": 2000.0, "type": "Работа"}]}, "materials": [{"id": "RMAT-0006", "name": "Бетон, миксер", "unit": "м3", "sub": "Бетон и армирование"}, {"id": "RMAT-0011", "name": "Брус 50х50х3000мм", "unit": "шт", "sub": "Прочее по бетонным элементам"}, {"id": "RMAT-0084", "name": "Проволока вязальная", "unit": "шт", "sub": "Бетон и армирование"}]}, {"id": "Полив", "name": "Полив", "subsections": {"Консервация / сервис": [{"id": "RWORK-0040", "name": "Консервация системы полива на зиму", "unit": "компл", "price": 36000.0, "type": "Работа"}], "Монтаж системы полива": [{"id": "RWORK-0164", "name": "Монтаж зоны полива (базовый)", "unit": "зон", "price": 18000.0, "type": "Работа"}, {"id": "RWORK-0165", "name": "Монтаж зоны полива (премиум)", "unit": "зон", "price": 32000.0, "type": "Работа"}, {"id": "RWORK-0166", "name": "Монтаж капельного полива", "unit": "зон", "price": 45000.0, "type": "Работа"}]}, "materials": [{"id": "RMAT-0125", "name": "Труба ПНД Ø32", "unit": "пог.м", "sub": "Трубопровод"}, {"id": "RMAT-0126", "name": "Спринклер роторный", "unit": "шт", "sub": "Оборудование"}]}, {"id": "Закладные___коммуникации", "name": "Закладные / коммуникации", "subsections": {"Кабельная траншея": [{"id": "RWORK-0041", "name": "Копка траншеи под кабель в песчаном грунте", "unit": "м.пог.", "price": 50.0, "type": "Работа"}], "Обратная засыпка": [{"id": "RWORK-0078", "name": "Обратная засыпка грунта", "unit": "м3", "price": 900.0, "type": "Работа"}], "Закладные и проходки": [{"id": "RWORK-0129", "name": "Устройство закладных из 3-х труб d=110 мм", "unit": "м.пог.", "price": 500.0, "type": "Работа"}, {"id": "RWORK-0131", "name": "Устройство закладных под мощением", "unit": "м.пог.", "price": 750.0, "type": "Работа"}]}, "materials": []}, {"id": "Вывоз_и_утилизация", "name": "Вывоз и утилизация", "subsections": {"Вывоз и погрузка": [{"id": "RWORK-0018", "name": "Вывоз мусора (грунт)", "unit": "м3", "price": 1200.0, "type": "Логистика"}, {"id": "RWORK-0019", "name": "Вывоз мусора (пухто 27м.куб.)", "unit": "кол-во раз", "price": 32000.0, "type": "Логистика"}, {"id": "RWORK-0090", "name": "Погрузка мусора (механическая)", "unit": "м3", "price": 500.0, "type": "Работа"}]}, "materials": []}, {"id": "Временные_сооружения_и_обеспечение", "name": "Временные сооружения и обеспечение", "subsections": {"Бытовые условия стройплощадки": [{"id": "RWORK-0003", "name": "Аренда вагончика", "unit": "мес.", "price": 8000.0, "type": "Логистика"}, {"id": "RWORK-0007", "name": "Аренда обслуживание (2 раза в месяц) туалетной кабины", "unit": "мес.", "price": 11700.0, "type": "Логистика"}, {"id": "RWORK-0020", "name": "Выезд электрика для подключения в вагончике", "unit": "кол-во раз", "price": 5000.0, "type": "Логистика"}, {"id": "RWORK-0033", "name": "Доставка/вывоз туалетной кабины", "unit": "кол-во раз", "price": 3600.0, "type": "Логистика"}, {"id": "RWORK-0035", "name": "Завоз-вывоз вагончика", "unit": "кол-во раз", "price": 17900.0, "type": "Логистика"}]}, "materials": []}, {"id": "Логистика_и_снабжение", "name": "Логистика и снабжение", "subsections": {"Доставка и ПРР": [{"id": "RWORK-0034", "name": "Доставки материалов и оборудования, погрузочно-разгрузочные работы", "unit": "%", "price": 0.056, "type": "Логистика"}]}, "materials": []}, {"id": "Накладные___коэффициенты", "name": "Накладные / коэффициенты", "subsections": {}, "materials": []}, {"id": "Сопровождение_проекта___услуги", "name": "Сопровождение проекта / услуги", "subsections": {"Авторское сопровождение": [{"id": "RWORK-0001", "name": "Авторское сопровождение", "unit": "%", "price": 0.03, "type": "Услуга"}]}, "materials": []}], "universal": [{"id": "RWORK-0001", "name": "Авторское сопровождение", "unit": "%", "price": 0.03, "type": "Услуга"}, {"id": "RWORK-0018", "name": "Вывоз мусора (грунт)", "unit": "м3", "price": 1200.0, "type": "Логистика"}, {"id": "RWORK-0019", "name": "Вывоз мусора (пухто 27м.куб.)", "unit": "кол-во раз", "price": 32000.0, "type": "Логистика"}, {"id": "RWORK-0034", "name": "Доставки материалов и оборудования, погрузочно-разгрузочные работы", "unit": "%", "price": 0.056, "type": "Логистика"}, {"id": "RWORK-0090", "name": "Погрузка мусора (механическая)", "unit": "м3", "price": 500.0, "type": "Работа"}]};
+
+let state = {
+  client:'', phone:'', addr:'', note:'',
+  selSections: [],
+  curSecIdx: 0,
+  works: {},
+  mats: {},
+  coef: 1.0,
+  _pendingQty: {},
+};
+
+const fmt = n => Math.round(n).toLocaleString('ru-RU') + ' ₽';
+const fmtN = n => parseFloat(n.toFixed(2));
+
+// Build section index
+const SEC_MAP = {};
+CATALOG.sections.forEach(s => { SEC_MAP[s.id] = s; });
+
+// ---- STEP 1 ----
+document.getElementById('btn-next-client').onclick = () => {
+  state.client = document.getElementById('f-client').value.trim();
+  state.phone  = document.getElementById('f-phone').value.trim();
+  state.addr   = document.getElementById('f-addr').value.trim();
+  state.note   = document.getElementById('f-note').value.trim();
+  goTo(2);
+};
+
+// ---- STEP 2 ----
+function buildSectionGrid() {
+  const grid = document.getElementById('sec-grid');
+  grid.innerHTML = '';
+  CATALOG.sections.forEach(s => {
+    const totalWorks = Object.values(s.subsections).reduce((a,v)=>a+v.length,0);
+    const div = document.createElement('div');
+    div.className = 'sec-card' + (state.selSections.includes(s.id) ? ' sel' : '');
+    div.innerHTML = `<div class="sec-card-name">${s.name}</div><div class="sec-card-count">${totalWorks} работ</div>`;
+    div.onclick = () => {
+      const idx = state.selSections.indexOf(s.id);
+      if(idx===-1) state.selSections = [s.id];
+      else state.selSections = [];
+      buildSectionGrid();
+      updateSecCounter();
+    };
+    grid.appendChild(div);
+  });
 }
 
-function addFromCatalog(item) {
-  const row = {
-    id: Date.now(),
-    name: item.name,
-    section: item.section,
-    unit: item.unit,
-    qty: 1,
-    price: item.price,
-    fromCatalog: true,
-  };
-  if (currentModalType === 'works') works.push(row);
-  else materials.push(row);
-  renderAll();
-  addModal.hide();
-  autosave();
+function updateSecCounter() {
+  const n = state.selSections.length;
+  const el = document.getElementById('sec-counter');
+  el.textContent = n===0 ? 'ничего не выбрано' : `выбрано: ${n}`;
+  document.getElementById('btn-next-sections').disabled = n===0;
 }
 
-function addManualRow() {
-  const name = document.getElementById('manualName').value.trim();
-  if (!name) { alert('Введите наименование'); return; }
-  const row = {
-    id: Date.now(),
-    name,
-    section: '',
-    unit: document.getElementById('manualUnit').value || 'шт',
-    qty: parseFloat(document.getElementById('manualQty').value) || 1,
-    price: parseFloat(document.getElementById('manualPrice').value) || 0,
-    fromCatalog: false,
-  };
-  if (currentModalType === 'works') works.push(row);
-  else materials.push(row);
-  renderAll();
-  addModal.hide();
-  autosave();
+document.getElementById('btn-next-sections').onclick = () => {
+  if(state.selSections.length===0) return;
+  state.curSecIdx = 0;
+  buildWorkScreen();
+  goTo(3);
+};
+
+// ---- STEP 3 ----
+function buildWorkScreen() {
+  buildSecDots();
+  renderCurrentSection();
+  updateWorksBtns();
 }
 
-// ─── Render ───────────────────────────────────────────────────────────────────
-function renderAll() {
-  renderTable('works', 'worksBody', 'worksEmpty');
-  renderTable('materials', 'materialsBody', 'materialsEmpty');
-  recalc();
+function buildSecDots() {
+  const wrap = document.getElementById('sec-dots');
+  wrap.innerHTML = state.selSections.map((id,i) =>
+    `<div class="sec-dot ${i<state.curSecIdx?'done':i===state.curSecIdx?'active':''}" title="${SEC_MAP[id]?.name}"></div>`
+  ).join('');
 }
 
-function renderTable(type, tbodyId, emptyId) {
-  const rows = type === 'works' ? works : materials;
-  const tbody = document.getElementById(tbodyId);
-  const empty = document.getElementById(emptyId);
-  if (!rows.length) {
-    tbody.innerHTML = '';
-    tbody.appendChild(empty);
-    empty.style.display = '';
-    return;
+function renderCurrentSection() {
+  const secId = state.selSections[state.curSecIdx];
+  const sec = SEC_MAP[secId];
+  if(!sec) return;
+  if(!state.works[secId]) state.works[secId] = {};
+  if(!state.mats[secId]) state.mats[secId] = [];
+
+  const wrap = document.getElementById('sec-detail-wrap');
+  const subsKeys = Object.keys(sec.subsections);
+
+  let html = `<div class="sec-detail">
+    <div class="q-title">${sec.name}</div>
+    <div class="q-sub" style="margin-bottom:16px">Выберите работы и укажите количество</div>
+    <div class="search-row">
+      <svg class="s-ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5l4 4"/></svg>
+      <input class="s-in" id="work-search" placeholder="Поиск работ...">
+    </div>
+    <div class="sec-nav" id="sub-tabs">`;
+
+  subsKeys.forEach((sub,i) => {
+    html += `<div class="sec-tab ${i===0?'on':''}" data-sub="${encodeURIComponent(sub)}" onclick="setSubTab(this,'${secId}')">${sub}</div>`;
+  });
+  html += `</div>
+    <table class="works-table">
+      <thead><tr>
+        <th style="width:24px"></th>
+        <th>Работа</th>
+        <th style="width:80px">Тип</th>
+        <th style="width:70px">Цена/ед.</th>
+        <th style="width:130px">Количество</th>
+        <th style="width:90px">Сумма</th>
+      </tr></thead>
+      <tbody id="works-tbody"></tbody>
+    </table>`;
+
+  // Materials panel
+  const mats = sec.materials;
+  if(mats.length > 0) {
+    html += `<div class="mats-panel">
+      <div class="mats-title">Материалы по разделу</div>
+      <div class="mat-suggest" id="mat-suggest">`;
+    mats.slice(0,20).forEach(mat => {
+      const isSel = state.mats[secId].some(m=>m.name===mat.name);
+      const safeName = mat.name.replace(/'/g,"\'").replace(/"/g,'&quot;');
+      html += `<div class="mat-chip ${isSel?'sel':''}" data-name="${mat.name.replace(/"/g,'&quot;')}" onclick="toggleMatChip('${secId}','${safeName}','${mat.unit}')">${mat.name}</div>`;
+    });
+    html += `</div>
+      <div class="mat-rows" id="mat-rows"></div>
+      <button class="mat-add-btn" onclick="addMatRow('${secId}')">+ добавить материал вручную</button>
+    </div>`;
   }
-  empty.style.display = 'none';
-  tbody.innerHTML = rows.map((r, i) => {
-    const coeff = type === 'works' ? complexityCoeff : 1;
-    const total = r.qty * r.price * coeff;
-    return `
-      <tr>
-        <td class="text-muted">${i + 1}</td>
-        <td><input class="inline" value="${esc(r.name)}" onchange="updateRow('${type}',${r.id},'name',this.value)"></td>
-        <td><span class="text-muted small">${esc(r.section)}</span></td>
-        <td><input class="inline" value="${esc(r.unit)}" onchange="updateRow('${type}',${r.id},'unit',this.value)" style="width:70px"></td>
-        <td><input type="number" class="inline" value="${r.qty}" min="0" step="0.1" onchange="updateRow('${type}',${r.id},'qty',this.value)"></td>
-        <td class="num"><input type="number" class="inline" value="${r.price}" min="0" onchange="updateRow('${type}',${r.id},'price',this.value)"></td>
-        <td class="num fw-semibold">${fmt(total)} ₽</td>
-        <td class="no-print"><button class="del-btn" onclick="deleteRow('${type}',${r.id})">✕</button></td>
-      </tr>`;
-  }).join('');
-}
 
-function updateRow(type, id, field, val) {
-  const rows = type === 'works' ? works : materials;
-  const row = rows.find(r => r.id === id);
-  if (!row) return;
-  if (field === 'qty' || field === 'price') row[field] = parseFloat(val) || 0;
-  else row[field] = val;
-  renderAll();
-  autosave();
-}
+  html += `<div class="sec-subtotal-bar" id="sec-subtotal"></div></div>`;
+  wrap.innerHTML = html;
 
-function deleteRow(type, id) {
-  if (type === 'works') works = works.filter(r => r.id !== id);
-  else materials = materials.filter(r => r.id !== id);
-  renderAll();
-  autosave();
-}
+  // Render first subtab
+  renderSubTable(secId, subsKeys[0]);
+  renderMatRows(secId);
 
-// ─── Calc & Summary ──────────────────────────────────────────────────────────
-function recalc() {
-  const markupWork = (parseFloat(document.getElementById('markupWork').value) || 0) / 100;
-  const markupMat = (parseFloat(document.getElementById('markupMat').value) || 0) / 100;
-  const vatOn = document.getElementById('vatCheck').checked;
-  const vatRate = (parseFloat(document.getElementById('vatRate').value) || 0) / 100;
-
-  const worksBase = works.reduce((s, r) => s + r.qty * r.price * complexityCoeff, 0);
-  const matsBase = materials.reduce((s, r) => s + r.qty * r.price, 0);
-  const worksTotal = worksBase * (1 + markupWork);
-  const matsTotal = matsBase * (1 + markupMat);
-  const subtotal = worksTotal + matsTotal;
-  const vat = vatOn ? subtotal * vatRate : 0;
-  const total = subtotal + vat;
-
-  document.getElementById('worksTotalCell').textContent = fmt(worksTotal) + ' ₽';
-  document.getElementById('materialsTotalCell').textContent = fmt(matsTotal) + ' ₽';
-
-  // Re-render row totals (coeff may have changed)
-  renderTable('works', 'worksBody', 'worksEmpty');
-  renderTable('materials', 'materialsBody', 'materialsEmpty');
-
-  const rows = [
-    ['Работы (базовая стоимость)', worksBase],
-    markupWork > 0 ? [`Наценка на работы (${(markupWork*100).toFixed(0)}%)`, worksBase * markupWork] : null,
-    ['Материалы (базовая стоимость)', matsBase],
-    markupMat > 0 ? [`Наценка на материалы (${(markupMat*100).toFixed(0)}%)`, matsBase * markupMat] : null,
-    vatOn ? [`НДС ${(vatRate*100).toFixed(0)}%`, vat] : null,
-  ].filter(Boolean);
-
-  document.getElementById('summaryBody').innerHTML =
-    rows.map(([label, val]) => `<tr><td>${label}</td><td class="num">${fmt(val)} ₽</td></tr>`).join('') +
-    `<tr class="grand-total"><td class="fw-bold">ИТОГО</td><td class="num">${fmt(total)} ₽</td></tr>`;
-}
-
-// ─── Persistence ──────────────────────────────────────────────────────────────
-function getState() {
-  return {
-    project: document.getElementById('iProject').value,
-    client: document.getElementById('iClient').value,
-    date: document.getElementById('iDate').value,
-    address: document.getElementById('iAddress').value,
-    complexityCoeff,
-    vatOn: document.getElementById('vatCheck').checked,
-    vatRate: document.getElementById('vatRate').value,
-    markupWork: document.getElementById('markupWork').value,
-    markupMat: document.getElementById('markupMat').value,
-    works,
-    materials,
+  document.getElementById('work-search').oninput = function() {
+    filterWorks(secId, this.value);
   };
 }
 
-function applyState(s) {
-  document.getElementById('iProject').value = s.project || '';
-  document.getElementById('iClient').value = s.client || '';
-  document.getElementById('iDate').value = s.date || '';
-  document.getElementById('iAddress').value = s.address || '';
-  document.getElementById('vatCheck').checked = !!s.vatOn;
-  document.getElementById('vatRate').value = s.vatRate || 20;
-  document.getElementById('markupWork').value = s.markupWork || 0;
-  document.getElementById('markupMat').value = s.markupMat || 10;
-  complexityCoeff = s.complexityCoeff || 1.0;
-  document.getElementById('complexityRange').value = complexityCoeff;
-  document.getElementById('complexityVal').textContent = `×${complexityCoeff.toFixed(2)}`;
-  works = s.works || [];
-  materials = s.materials || [];
-  renderAll();
+function setSubTab(el, secId) {
+  document.querySelectorAll('#sub-tabs .sec-tab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+  const sub = decodeURIComponent(el.dataset.sub);
+  renderSubTable(secId, sub);
 }
 
-function autosave() {
-  try {
-    localStorage.setItem('estimate_gen_draft', JSON.stringify(getState()));
-  } catch(e) {}
+function renderSubTable(secId, sub) {
+  const sec = SEC_MAP[secId];
+  const tbody = document.getElementById('works-tbody');
+  if(!tbody) return;
+  const works = sec.subsections[sub] || [];
+  const q = document.getElementById('work-search')?.value?.toLowerCase() || '';
+  const filtered = q ? works.filter(w=>w.name.toLowerCase().includes(q)) : works;
+  tbody.innerHTML = filtered.map(w => {
+    const sel = !!state.works[secId]?.[w.id];
+    const qty = state.works[secId]?.[w.id]?.qty || 1;
+    const priceDisp = w.price > 0 ? w.price.toLocaleString('ru-RU') : '—';
+    const lineTotal = sel && w.price > 0 ? (w.price * qty).toLocaleString('ru-RU') + ' ₽' : '';
+    return `<tr class="work-row ${sel?'sel':''}" id="wr-${w.id}" onclick="toggleWork('${secId}','${w.id}','${w.name.replace(/'/g,"\'")}','${w.unit}',${w.price})">
+      <td><span class="work-check"><svg class="check-tick" viewBox="0 0 10 8"><path d="M1 4l3 3 5-6"/></svg></span></td>
+      <td><div class="work-name">${w.name}</div></td>
+      <td><span class="work-type-badge">${w.type}</span></td>
+      <td class="work-price">${priceDisp} ₽</td>
+      <td><div class="qty-wrap" onclick="event.stopPropagation()">
+        <button class="qty-btn" onclick="changeQty('${secId}','${w.id}',-1)">−</button>
+        <input class="qty-in" id="qty-${w.id}" type="number" min="0.1" step="any" value="${qty}" oninput="setQty('${secId}','${w.id}',this.value);updateLineTotal('${w.id}',${w.price},this.value)">
+        <button class="qty-btn" onclick="changeQty('${secId}','${w.id}',1)">+</button>
+        <span style="font-size:11px;color:#444;margin-left:4px">${w.unit}</span>
+      </div></td>
+      <td class="work-price" id="lt-${w.id}" style="color:${sel?'#a89060':'#2a2a2a'}">${lineTotal}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="5" class="no-res">Нет работ в этом подразделе</td></tr>';
 }
 
-function saveDraft() {
-  autosave();
-  const st = document.getElementById('saveStatus');
-  st.textContent = '✓ Сохранено ' + new Date().toLocaleTimeString('ru');
-  setTimeout(() => st.textContent = '', 3000);
+function filterWorks(secId, q) {
+  const sec = SEC_MAP[secId];
+  const tbody = document.getElementById('works-tbody');
+  if(!tbody) return;
+  const ql = q.toLowerCase();
+  let html = '';
+  Object.entries(sec.subsections).forEach(([sub, works]) => {
+    const filtered = ql ? works.filter(w=>w.name.toLowerCase().includes(ql)) : [];
+    if(ql && filtered.length > 0) {
+      html += `<tr class="sub-header"><td colspan="5">${sub}</td></tr>`;
+      filtered.forEach(w => {
+        const sel = !!state.works[secId]?.[w.id];
+        const qty = state.works[secId]?.[w.id]?.qty || 1;
+        const priceDisp = w.price > 0 ? w.price.toLocaleString('ru-RU') : '—';
+        const lt2 = sel && w.price > 0 ? (w.price * qty).toLocaleString('ru-RU') + ' ₽' : '';
+        html += `<tr class="work-row ${sel?'sel':''}" id="wr-${w.id}" onclick="toggleWork('${secId}','${w.id}','${w.name.replace(/'/g,"\'")}','${w.unit}',${w.price})">
+          <td><span class="work-check"><svg class="check-tick" viewBox="0 0 10 8"><path d="M1 4l3 3 5-6"/></svg></span></td>
+          <td><div class="work-name">${w.name}</div></td>
+          <td><span class="work-type-badge">${w.type}</span></td>
+          <td class="work-price">${priceDisp} ₽</td>
+          <td><div class="qty-wrap" onclick="event.stopPropagation()">
+            <button class="qty-btn" onclick="changeQty('${secId}','${w.id}',-1)">−</button>
+            <input class="qty-in" id="qty-${w.id}" type="number" min="0.1" step="any" value="${qty}" oninput="setQty('${secId}','${w.id}',this.value);updateLineTotal('${w.id}',${w.price},this.value)">
+            <button class="qty-btn" onclick="changeQty('${secId}','${w.id}',1)">+</button>
+            <span style="font-size:11px;color:#444;margin-left:4px">${w.unit}</span>
+          </div></td>
+          <td class="work-price" id="lt-${w.id}" style="color:${sel?'#a89060':'#2a2a2a'}">${lt2}</td>
+        </tr>`;
+      });
+    }
+  });
+  if(!ql) {
+    // show current active tab
+    const activeTab = document.querySelector('#sub-tabs .sec-tab.on');
+    if(activeTab) renderSubTable(secId, decodeURIComponent(activeTab.dataset.sub));
+  } else {
+    tbody.innerHTML = html || '<tr><td colspan="5" class="no-res">Ничего не найдено</td></tr>';
+  }
 }
 
-function loadDraft() {
-  const raw = localStorage.getItem('estimate_gen_draft');
-  if (!raw) { alert('Нет сохранённого черновика'); return; }
-  applyState(JSON.parse(raw));
+function updateLineTotal(wId, price, val) {
+  const cell = document.getElementById('lt-'+wId);
+  const row = document.getElementById('wr-'+wId);
+  if(!cell || !row) return;
+  const qty = Math.max(0.1, parseFloat(val)||1);
+  if(row.classList.contains('sel') && price > 0) {
+    cell.textContent = (price * qty).toLocaleString('ru-RU') + ' ₽';
+    cell.style.color = '#a89060';
+  }
+  updateSecSubtotal();
 }
 
-function loadDraftSilent() {
-  const raw = localStorage.getItem('estimate_gen_draft');
-  if (raw) try { applyState(JSON.parse(raw)); } catch(e) {}
+function updateSecSubtotal() {
+  const secId = state.selSections[state.curSecIdx];
+  if(!secId) return;
+  let total = 0;
+  Object.values(state.works[secId]||{}).forEach(w => {
+    const inp = document.getElementById('qty-'+w.id);
+    const qty = inp ? (parseFloat(inp.value)||w.qty) : w.qty;
+    total += w.price * qty;
+  });
+  const bar = document.getElementById('sec-subtotal');
+  if(bar) bar.textContent = total > 0 ? 'Итог по разделу: ' + total.toLocaleString('ru-RU') + ' ₽' : '';
 }
 
-function newEstimate() {
-  if (!confirm('Начать новую смету? Текущие данные будут очищены.')) return;
-  works = [];
-  materials = [];
-  document.getElementById('iProject').value = '';
-  document.getElementById('iClient').value = '';
-  document.getElementById('iDate').value = new Date().toISOString().slice(0, 10);
-  document.getElementById('iAddress').value = '';
-  renderAll();
+function saveAllQty(secId) {
+  document.querySelectorAll('.qty-in').forEach(inp => {
+    const wId = inp.id.replace('qty-','');
+    if(state.works[secId]?.[wId]) {
+      state.works[secId][wId].qty = Math.max(0.1, parseFloat(inp.value)||1);
+    }
+  });
 }
 
-// ─── Excel export ─────────────────────────────────────────────────────────────
-function exportExcel() {
-  const wb = XLSX.utils.book_new();
-  const markupWork = (parseFloat(document.getElementById('markupWork').value) || 0) / 100;
-  const markupMat = (parseFloat(document.getElementById('markupMat').value) || 0) / 100;
-  const vatOn = document.getElementById('vatCheck').checked;
-  const vatRate = (parseFloat(document.getElementById('vatRate').value) || 0) / 100;
-
-  const header = ['#', 'Наименование', 'Раздел', 'Ед.изм.', 'Кол-во', 'Цена, ₽', 'Коэф.', 'Сумма, ₽'];
-
-  const worksRows = works.map((r, i) => [
-    i + 1, r.name, r.section, r.unit, r.qty, r.price, complexityCoeff, r.qty * r.price * complexityCoeff
-  ]);
-  const worksBase = works.reduce((s, r) => s + r.qty * r.price * complexityCoeff, 0);
-  const matsRows = materials.map((r, i) => [
-    i + 1, r.name, r.section, r.unit, r.qty, r.price, 1, r.qty * r.price
-  ]);
-  const matsBase = materials.reduce((s, r) => s + r.qty * r.price, 0);
-
-  const worksTotal = worksBase * (1 + markupWork);
-  const matsTotal = matsBase * (1 + markupMat);
-  const subtotal = worksTotal + matsTotal;
-  const vat = vatOn ? subtotal * vatRate : 0;
-  const total = subtotal + vat;
-
-  const data = [
-    [`Смета: ${document.getElementById('iProject').value}`],
-    [`Клиент: ${document.getElementById('iClient').value}`, '', `Дата: ${document.getElementById('iDate').value}`],
-    [`Адрес: ${document.getElementById('iAddress').value}`],
-    [],
-    ['РАБОТЫ'],
-    header,
-    ...worksRows,
-    ['', '', '', '', '', '', 'Итого работы:', worksTotal],
-    [],
-    ['МАТЕРИАЛЫ'],
-    header,
-    ...matsRows,
-    ['', '', '', '', '', '', 'Итого материалы:', matsTotal],
-    [],
-    ['ИТОГО', '', '', '', '', '', '', total],
-  ];
-
-  const ws = XLSX.utils.aoa_to_sheet(data);
-  XLSX.utils.book_append_sheet(wb, ws, 'Смета');
-  XLSX.writeFile(wb, `Смета_${document.getElementById('iProject').value || 'новая'}.xlsx`);
+function toggleWork(secId, wId, name, unit, price) {
+  if(!state.works[secId]) state.works[secId] = {};
+  if(state.works[secId][wId]) {
+    delete state.works[secId][wId];
+  } else {
+    const inp = document.getElementById('qty-'+wId);
+    const pending = state._pendingQty?.[wId];
+    const qty = pending || (inp ? Math.max(0.1, parseFloat(inp.value)||1) : 1);
+    if(state._pendingQty) delete state._pendingQty[wId];
+    state.works[secId][wId] = {name, unit, price: parseFloat(price)||0, qty};
+  }
+  const row = document.getElementById('wr-'+wId);
+  if(row) row.classList.toggle('sel', !!state.works[secId][wId]);
+  const cell = document.getElementById('lt-'+wId);
+  if(cell) {
+    const w = state.works[secId]?.[wId];
+    if(w && w.price > 0) {
+      cell.textContent = (w.price * w.qty).toLocaleString('ru-RU') + ' ₽';
+      cell.style.color = '#a89060';
+    } else {
+      cell.textContent = '';
+    }
+  }
+  updateSecSubtotal();
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-function fmt(n) {
-  return Math.round(n).toLocaleString('ru-RU');
+function changeQty(secId, wId, delta) {
+  const inp = document.getElementById('qty-'+wId);
+  if(!inp) return;
+  const cur = parseFloat(inp.value)||1;
+  const nv = Math.max(0.1, fmtN(cur+delta));
+  inp.value = nv;
+  if(state.works[secId]?.[wId]) {
+    state.works[secId][wId].qty = nv;
+    const cell = document.getElementById('lt-'+wId);
+    const w = state.works[secId][wId];
+    if(cell && w.price > 0) cell.textContent = (w.price * nv).toLocaleString('ru-RU') + ' ₽';
+    updateSecSubtotal();
+  } else { if(!state._pendingQty) state._pendingQty={}; state._pendingQty[wId]=nv; }
 }
 
-function esc(s) {
-  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function setQty(secId, wId, val) {
+  const nv = Math.max(0.1, parseFloat(val)||1);
+  if(state.works[secId]?.[wId]) state.works[secId][wId].qty = nv;
+  else { if(!state._pendingQty) state._pendingQty={}; state._pendingQty[wId]=nv; }
 }
+
+function toggleMatChip(secId, name, unit) {
+  saveMats(secId);
+  const idx = state.mats[secId].findIndex(m=>m.name===name);
+  if(idx===-1) state.mats[secId].push({name, qty:'', unit, price:''});
+  else state.mats[secId].splice(idx,1);
+  document.querySelectorAll('.mat-chip').forEach(chip => {
+    chip.classList.toggle('sel', state.mats[secId].some(m=>m.name===chip.dataset.name));
+  });
+  renderMatRows(secId);
+}
+
+function addMatRow(secId) {
+  state.mats[secId].push({name:'',qty:'',unit:'',price:''});
+  renderMatRows(secId);
+  setTimeout(()=>{
+    const rows = document.querySelectorAll('.mat-name-in');
+    if(rows.length) rows[rows.length-1].focus();
+  },50);
+}
+
+function delMatRow(secId, i) {
+  saveMats(secId);
+  state.mats[secId].splice(i,1);
+  renderMatRows(secId);
+}
+
+function saveMats(secId) {
+  const rows = document.querySelectorAll('#mat-rows .mat-row');
+  state.mats[secId] = Array.from(rows).map(r=>({
+    name: r.querySelector('.mat-name-in')?.value||'',
+    qty:   r.querySelector('.mat-qty-in')?.value||'',
+    unit:  r.querySelector('.mat-unit-in')?.value||'',
+    price: r.querySelector('.mat-price-in')?.value||'',
+  })).filter(m=>m.name.trim());
+}
+
+function renderMatRows(secId) {
+  const wrap = document.getElementById('mat-rows');
+  if(!wrap) return;
+  const mats = state.mats[secId] || [];
+  wrap.innerHTML = mats.map((m,i)=>`<div class="mat-row">
+    <input class="mat-name-in" placeholder="Материал" value="${m.name.replace(/"/g,'&quot;')}">
+    <input class="mat-qty-in" placeholder="кол-во" value="${m.qty}">
+    <input class="mat-unit-in" placeholder="ед." value="${m.unit}">
+    <input class="mat-price-in" placeholder="цена ₽" value="${m.price||''}">
+    <button class="mat-del" onclick="delMatRow('${secId}',${i})">×</button>
+  </div>`).join('');
+}
+
+function updateWorksBtns() {
+  const total = state.selSections.length;
+  const cur = state.curSecIdx;
+  const nextBtn = document.getElementById('btn-next-sec');
+  nextBtn.textContent = cur >= total-1 ? 'Итог →' : 'Следующий раздел →';
+}
+
+document.getElementById('btn-next-sec').onclick = () => {
+  const secId = state.selSections[state.curSecIdx];
+  saveAllQty(secId);
+  saveMats(secId);
+  if(state.curSecIdx < state.selSections.length-1) {
+    state.curSecIdx++;
+    buildWorkScreen();
+    window.scrollTo(0,0);
+  } else {
+    buildSummary();
+    goTo(4);
+  }
+};
+
+document.getElementById('btn-prev-sec').onclick = () => {
+  const secId = state.selSections[state.curSecIdx];
+  saveAllQty(secId);
+  saveMats(secId);
+  if(state.curSecIdx > 0) {
+    state.curSecIdx--;
+    buildWorkScreen();
+    window.scrollTo(0,0);
+  } else {
+    goTo(2);
+  }
+};
+
+// ---- STEP 4: SUMMARY ----
+document.getElementById('coef-slider').oninput = function() {
+  state.coef = parseFloat(this.value);
+  document.getElementById('coef-val').textContent = '×' + state.coef.toFixed(1);
+  renderSummaryTable();
+  updateTotals();
+};
+
+function buildSummary() {
+  // Client card
+  const date = new Date().toLocaleDateString('ru-RU');
+  const hasClient = state.client || state.addr || state.phone;
+  document.getElementById('cli-card').innerHTML = hasClient ? `
+    <div class="cli-name">${state.client || 'Клиент не указан'}</div>
+    <div class="cli-detail">${[state.addr, state.phone].filter(Boolean).join(' · ')}</div>
+    <div class="cli-detail" style="margin-top:2px">${[date, state.note].filter(Boolean).join(' · ')}</div>` :
+    `<div class="cli-detail" style="color:#3a3a3a">${date}</div>`;
+
+  renderSummaryTable();
+  updateTotals();
+}
+
+function renderSummaryTable() {
+  const wrap = document.getElementById('summary-sections');
+  wrap.innerHTML = '';
+  const coef = state.coef;
+
+  state.selSections.forEach(secId => {
+    const works = state.works[secId] || {};
+    const mats = (state.mats[secId] || []).filter(m=>m.name.trim());
+    const selWorks = Object.values(works);
+    if(selWorks.length === 0 && mats.length === 0) return;
+    const sec = SEC_MAP[secId];
+
+    const matTotal = mats.reduce((a,m)=>a+(parseFloat(m.price)||0)*(parseFloat(m.qty)||0),0);
+    const secTotal = selWorks.reduce((a,w) => a + Math.round(w.price * coef) * w.qty, 0) + matTotal;
+
+    const div = document.createElement('div');
+    div.className = 'sum-sec';
+
+    let rows = '';
+    selWorks.forEach(w => {
+      const adjPrice = Math.round(w.price * coef);
+      const lineTotal = adjPrice * w.qty;
+      rows += `<tr>
+        <td>${w.name}</td>
+        <td>${w.unit}</td>
+        <td>${w.qty}</td>
+        <td>${adjPrice > 0 ? adjPrice.toLocaleString('ru-RU') + ' ₽' : '—'}</td>
+        <td>${adjPrice > 0 ? lineTotal.toLocaleString('ru-RU') + ' ₽' : '—'}</td>
+      </tr>`;
+    });
+
+    if(mats.length) {
+      mats.forEach(m => {
+        rows += `<tr class="mat-line">
+          <td>${m.name}</td>
+          <td>${m.unit || '—'}</td>
+          <td>${m.qty || '—'}</td>
+          <td>—</td>
+          <td>—</td>
+        </tr>`;
+      });
+    }
+
+    div.innerHTML = `
+      <div class="sum-sec-head">
+        <span>${sec.name}</span>
+        <span class="sum-sec-total">${secTotal > 0 ? secTotal.toLocaleString('ru-RU') + ' ₽' : ''}</span>
+      </div>
+      <table class="sum-table">
+        <thead><tr>
+          <th>Наименование</th>
+          <th>Ед.</th>
+          <th>Кол-во</th>
+          <th>Цена</th>
+          <th>Сумма</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+    wrap.appendChild(div);
+  });
+}
+
+function updateTotals() {
+  const coef = state.coef;
+  let total = 0;
+  state.selSections.forEach(secId => {
+    Object.values(state.works[secId]||{}).forEach(w => {
+      total += Math.round(w.price * coef) * w.qty;
+    });
+    (state.mats[secId]||[]).filter(m=>m.name.trim()).forEach(m => {
+      total += (parseFloat(m.price)||0)*(parseFloat(m.qty)||0);
+    });
+  });
+  document.getElementById('totals-card').innerHTML = `
+    <div class="tot-title">Итог по смете</div>
+    <div class="tot-row big"><span>Итого</span><span>${total.toLocaleString('ru-RU')} ₽</span></div>`;
+}
+
+// ---- NAVIGATION ----
+const STEPS = ['s-client','s-sections','s-works','s-summary'];
+const PROG = [10,30,70,100];
+const LABELS = ['Шаг 1 из 4 — Данные клиента','Шаг 2 из 4 — Выбор разделов','Шаг 3 из 4 — Состав работ','Шаг 4 из 4 — Смета'];
+
+function goTo(step) {
+  STEPS.forEach(id=>document.getElementById(id).classList.remove('active'));
+  document.getElementById(STEPS[step-1]).classList.add('active');
+  document.getElementById('prog-fill').style.width = PROG[step-1]+'%';
+  document.getElementById('step-label').textContent = LABELS[step-1];
+  window.scrollTo(0,0);
+  if(step===2) { buildSectionGrid(); updateSecCounter(); }
+}
+
+function resetAll() {
+  state = {client:'',phone:'',addr:'',note:'',selSections:[],curSecIdx:0,works:{},mats:{},coef:1.0,_pendingQty:{}};
+  document.getElementById('f-client').value='';
+  document.getElementById('f-phone').value='';
+  document.getElementById('f-addr').value='';
+  document.getElementById('f-note').value='';
+  document.getElementById('coef-slider').value=1;
+  document.getElementById('coef-val').textContent='×1.0';
+  goTo(1);
+}
+
+// Init
+buildSectionGrid();
+updateSecCounter();
 </script>
 </body>
 </html>

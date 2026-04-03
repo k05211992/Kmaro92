@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { LayoutGrid, LayoutList, Upload, SlidersHorizontal, X } from "lucide-react";
+import { Upload, SlidersHorizontal, X } from "lucide-react";
 import { useApp } from "@/context/AppContext";
 import { CatalogProvider, useCatalog } from "@/context/CatalogContext";
 import { Filters } from "@/components/catalog/Filters";
@@ -59,7 +59,7 @@ function CatalogPageInner() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden">
+    <div className="flex h-[calc(100vh-4rem)] overflow-hidden">
       {/* ---- Left sidebar: filters (desktop) ---- */}
       <div className="hidden lg:block w-60 xl:w-64 flex-shrink-0 overflow-y-auto border-r border-gray-100 bg-white scrollbar-thin">
         <div className="p-4">

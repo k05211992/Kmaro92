@@ -8,20 +8,22 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["var(--font-montserrat)", "Montserrat", "sans-serif"],
+      },
       colors: {
-        // Brand palette — earthy greens for a nursery feel
         brand: {
-          50: "#f0fdf4",
-          100: "#dcfce7",
-          200: "#bbf7d0",
-          300: "#86efac",
-          400: "#4ade80",
-          500: "#22c55e",
-          600: "#16a34a",
-          700: "#15803d",
-          800: "#166534",
-          900: "#14532d",
-          950: "#052e16",
+          50:  "#e8f9ef",
+          100: "#c5f0d6",
+          200: "#8fe0b0",
+          300: "#4dcc84",
+          400: "#30da75",
+          500: "#21b65d",
+          600: "#198b47",
+          700: "#126535",
+          800: "#0b4223",
+          900: "#062414",
+          950: "#031208",
         },
       },
     },

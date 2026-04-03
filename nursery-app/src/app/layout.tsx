@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Montserrat } from "next/font/google";
 import "./globals.css";
 import { AppProvider } from "@/context/AppContext";
 import { QuoteProvider } from "@/context/QuoteContext";
 import { Header } from "@/components/layout/Header";
 
-const inter = Inter({ subsets: ["latin", "cyrillic"] });
+const montserrat = Montserrat({ subsets: ["latin", "cyrillic"], variable: "--font-montserrat" });
 
 export const metadata: Metadata = {
   title: "Питомник растений — Каталог и КП",
@@ -20,7 +20,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ru" className="h-full">
-      <body className={`${inter.className} h-full`}>
+      <body className={`${montserrat.variable} font-sans h-full`}>
         <AppProvider>
           <QuoteProvider>
             <Header />

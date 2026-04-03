@@ -7,6 +7,7 @@ on:
       - habit-tracker/**
       - vizitka.html
       - landing.html
+      - landscape-estimator/public/estimate_generator.html
   workflow_dispatch:
 
 permissions:
@@ -44,6 +45,7 @@ jobs:
         run: |
           cp vizitka.html habit-tracker/dist/vizitka.html
           cp landing.html habit-tracker/dist/landing.html
+          cp landscape-estimator/public/estimate_generator.html habit-tracker/dist/estimate_generator.html
 
       - uses: actions/upload-pages-artifact@v3
         with:

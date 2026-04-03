@@ -8,20 +8,22 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["var(--font-montserrat)", "Montserrat", "sans-serif"],
+      },
       colors: {
-        // Brand palette — deep emerald, e-commerce premium feel
         brand: {
-          50: "#ecfdf5",
-          100: "#d1fae5",
-          200: "#a7f3d0",
-          300: "#6ee7b7",
-          400: "#34d399",
-          500: "#10b981",
-          600: "#059669",
-          700: "#047857",
-          800: "#065f46",
-          900: "#064e3b",
-          950: "#022c22",
+          50:  "#e8f9ef",
+          100: "#c5f0d6",
+          200: "#8fe0b0",
+          300: "#4dcc84",
+          400: "#30da75",
+          500: "#21b65d",
+          600: "#198b47",
+          700: "#126535",
+          800: "#0b4223",
+          900: "#062414",
+          950: "#031208",
         },
       },
     },

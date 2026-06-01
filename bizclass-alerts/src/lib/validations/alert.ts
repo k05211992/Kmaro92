@@ -10,22 +10,24 @@ const iataCode = z
   .toUpperCase()
   .regex(/^[A-Z]{3}$/, 'Must be a 3-letter IATA code (e.g. JFK, DXB)')
 
-export const alertCreateSchema = z
-  .object({
-    origin: iataCode,
-    destination: iataCode,
-    tripType: z.enum(['one_way', 'round_trip']),
-    departDateFrom: isoDate,
-    departDateTo: isoDate.nullable().optional(),
-    returnDateFrom: isoDate.nullable().optional(),
-    returnDateTo: isoDate.nullable().optional(),
-    maxPrice: z.number().positive('Must be greater than 0'),
-    currency: z.enum(['EUR', 'USD']),
-    maxStops: z.union([z.literal(0), z.literal(1), z.literal(2)]),
-    maxDurationMinutes: z.number().int().positive().nullable().optional(),
-    nearbyAirports: z.boolean(),
-    notifFrequency: z.enum(['instant', 'daily_digest']),
-  })
+// Base object schema — used for .partial() in alertUpdateSchema
+const alertBaseSchema = z.object({
+  origin: iataCode,
+  destination: iataCode,
+  tripType: z.enum(['one_way', 'round_trip']),
+  departDateFrom: isoDate,
+  departDateTo: isoDate.nullable().optional(),
+  returnDateFrom: isoDate.nullable().optional(),
+  returnDateTo: isoDate.nullable().optional(),
+  maxPrice: z.number().positive('Must be greater than 0'),
+  currency: z.enum(['EUR', 'USD']),
+  maxStops: z.union([z.literal(0), z.literal(1), z.literal(2)]),
+  maxDurationMinutes: z.number().int().positive().nullable().optional(),
+  nearbyAirports: z.boolean(),
+  notifFrequency: z.enum(['instant', 'daily_digest']),
+})
+
+export const alertCreateSchema = alertBaseSchema
   .refine((d) => d.origin !== d.destination, {
     message: 'Origin and destination must be different',
     path: ['destination'],
@@ -66,7 +68,7 @@ export const alertCreateSchema = z
     { message: 'Return end date must be on or after return start date', path: ['returnDateTo'] },
   )
 
-export const alertUpdateSchema = alertCreateSchema.partial().extend({
+export const alertUpdateSchema = alertBaseSchema.partial().extend({
   status: z.enum(['active', 'paused', 'archived']).optional(),
 })
 

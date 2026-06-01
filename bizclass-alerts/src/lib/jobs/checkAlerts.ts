@@ -34,7 +34,7 @@ export interface CheckAlertsResult {
 
 // ── Main job ──────────────────────────────────────────────────────────────────
 
-export async function checkAlerts(): Promise<CheckAlertsResult> {
+export async function checkAlerts(opts?: { alertIds?: string[] }): Promise<CheckAlertsResult> {
   const stats: CheckAlertsResult = { checked: 0, notified: 0, errors: 0, skipped: 0 }
   const provider = getFlightProvider()
 
@@ -42,7 +42,10 @@ export async function checkAlerts(): Promise<CheckAlertsResult> {
 
   // Oldest-first so every alert eventually gets a turn even if the run is capped
   const alerts = await prisma.alert.findMany({
-    where: { status: 'active' },
+    where: {
+      status: 'active',
+      ...(opts?.alertIds ? { id: { in: opts.alertIds } } : {}),
+    },
     include: { user: true },
     orderBy: { lastCheckedAt: { sort: 'asc', nulls: 'first' } },
     take: 50,
@@ -94,18 +97,32 @@ export async function checkAlerts(): Promise<CheckAlertsResult> {
         dropped: raw.length - filtered.length,
       })
 
+      // ── Batch dedup: one query per alert instead of N queries ─────────────
+      // Pre-compute all hashes for filtered offers
+      const offerHashes = filtered.map((o) => ({
+        offer: o,
+        hash: buildDedupHash(alert.id, o),
+      }))
+
+      // Fetch all already-stored hashes in a single roundtrip
+      const existingRows = await prisma.flightOffer.findMany({
+        where: { hashForDedup: { in: offerHashes.map((h) => h.hash) } },
+        select: { hashForDedup: true },
+      })
+      const existingHashSet = new Set(existingRows.map((r: { hashForDedup: string }) => r.hashForDedup))
+
+      const newOffers = offerHashes.filter(({ hash }) => {
+        if (existingHashSet.has(hash)) {
+          log('info', 'cron.offer_dedup_skip', { ...ctx, hash: hash.slice(0, 12) })
+          stats.skipped++
+          return false
+        }
+        return true
+      })
+
       let worthyCount = 0
 
-      for (const offer of filtered) {
-        // ── Deduplication ────────────────────────────────────────────────────
-        const hashForDedup = buildDedupHash(alert.id, offer)
-        const existing = await prisma.flightOffer.findUnique({ where: { hashForDedup } })
-        if (existing) {
-          log('info', 'cron.offer_dedup_skip', { ...ctx, hash: hashForDedup.slice(0, 12) })
-          stats.skipped++
-          continue
-        }
-
+      for (const { offer, hash: hashForDedup } of newOffers) {
         // ── Notify decision ──────────────────────────────────────────────────
         const decision = worthyToNotify(offer, {
           maxPrice: Number(alert.maxPrice),
@@ -131,9 +148,9 @@ export async function checkAlerts(): Promise<CheckAlertsResult> {
             stops: offer.stops,
             durationMinutes: offer.durationMinutes,
             isFullBusiness: offer.isFullBusiness,
-            airlineCodes: offer.airlineCodes,
+            airlineCodes: JSON.stringify(offer.airlineCodes),
             deepLink,
-            rawData: offer.rawData,
+            rawData: JSON.stringify(offer.rawData),
             hashForDedup,
           },
         })
@@ -144,11 +161,11 @@ export async function checkAlerts(): Promise<CheckAlertsResult> {
             where: { id: alert.id },
             data: { bestPriceSeen: offer.price },
           })
-          // Keep local reference consistent within this loop iteration
           alert.bestPriceSeen = savedOffer.price
           log('info', 'cron.best_price_updated', {
             ...ctx,
-            price: offer.price,
+            prev: alert.bestPriceSeen !== null ? Number(alert.bestPriceSeen) : null,
+            next: offer.price,
             currency: offer.currency,
           })
         }
@@ -165,17 +182,20 @@ export async function checkAlerts(): Promise<CheckAlertsResult> {
           reason: decision.reason,
           stops: offer.stops,
           airlines: offer.airlineCodes.join('+'),
-          telegramReady: !!alert.user.telegramChatId,
+          channel: alert.user.telegramChatId ? 'telegram' : 'email',
         })
 
-        // Step 5 — queue as 'pending'; Step 6 will handle actual Telegram dispatch
+        // Route to Telegram if linked, otherwise fall back to email
+        const channel = alert.user.telegramChatId ? 'telegram' : 'email'
+
+        // Queue as 'pending'; the matching dispatcher sends the actual message
         await prisma.notification
           .create({
             data: {
               alertId: alert.id,
               offerId: savedOffer.id,
               userId: alert.userId,
-              channel: 'telegram',
+              channel,
               reason: decision.reason,
               status: 'pending',
             },
@@ -211,6 +231,7 @@ export async function checkAlerts(): Promise<CheckAlertsResult> {
       log('info', 'cron.alert_done', {
         ...ctx,
         durationMs: Date.now() - runStart,
+        newOffers: newOffers.length,
         worthyCount,
       })
     } catch (err) {

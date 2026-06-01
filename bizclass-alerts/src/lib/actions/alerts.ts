@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/db'
 import { alertCreateSchema, flattenZodErrors } from '@/lib/validations/alert'
+import { checkAlerts } from '@/lib/jobs/checkAlerts'
 import { config } from '@/config'
 import type { AlertStatus } from '@/types/alert'
 
@@ -89,7 +90,7 @@ export async function createAlertAction(
     create: { id: user.id, email: user.email! },
   })
 
-  await prisma.alert.create({
+  const newAlert = await prisma.alert.create({
     data: {
       userId: user.id,
       origin: d.origin,
@@ -108,8 +109,11 @@ export async function createAlertAction(
     },
   })
 
+  // Run an immediate search so the user sees results right away
+  await checkAlerts({ alertIds: [newAlert.id] }).catch(() => undefined)
+
   revalidatePath('/dashboard')
-  redirect('/dashboard')
+  redirect(`/alerts/${newAlert.id}/history`)
 }
 
 /**
@@ -193,4 +197,21 @@ export async function patchAlertStatusAction(
 
   revalidatePath('/dashboard')
   return { success: true }
+}
+
+/**
+ * Immediately runs a flight search for one alert and redirects back to its history page.
+ * Called from the "Check now" button on the history page.
+ */
+export async function checkAlertNowAction(alertId: string): Promise<ActionResult> {
+  const user = await getAuthedUser()
+  if (!user) return { success: false, error: 'Not authenticated' }
+
+  const existing = await prisma.alert.findFirst({ where: { id: alertId, userId: user.id } })
+  if (!existing) return { success: false, error: 'Alert not found' }
+
+  await checkAlerts({ alertIds: [alertId] }).catch(() => undefined)
+
+  revalidatePath(`/alerts/${alertId}/history`)
+  redirect(`/alerts/${alertId}/history`)
 }

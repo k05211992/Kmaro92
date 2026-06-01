@@ -1,8 +1,19 @@
 import { Badge } from '@/components/ui/Badge'
+import { PriceDisclaimer } from '@/components/ui/PriceDisclaimer'
 import type { FlightOffer } from '@/types/offer'
 
 interface OfferCardProps {
   offer: FlightOffer
+}
+
+/** Builds a Kayak deep link pre-filtered to Business class */
+function buildSearchUrl(offer: FlightOffer): string {
+  const depart = offer.departAt.slice(0, 10) // "2027-01-05"
+  if (offer.returnDepartAt) {
+    const ret = offer.returnDepartAt.slice(0, 10)
+    return `https://www.kayak.com/flights/${offer.origin}-${offer.destination}/${depart}/${ret}/business?adults=1`
+  }
+  return `https://www.kayak.com/flights/${offer.origin}-${offer.destination}/${depart}/business?adults=1`
 }
 
 function formatDuration(minutes: number): string {
@@ -64,7 +75,7 @@ export function OfferCard({ offer }: OfferCardProps) {
         </div>
 
         <a
-          href={offer.deepLink}
+          href={buildSearchUrl(offer)}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-700 transition-colors"
@@ -78,6 +89,10 @@ export function OfferCard({ offer }: OfferCardProps) {
           ⚠️ Mixed cabin — some flight segments may not be in business class
         </p>
       )}
+
+      <div className="mt-3 border-t border-gray-100 pt-2">
+        <PriceDisclaimer compact />
+      </div>
     </div>
   )
 }

@@ -1,16 +1,41 @@
 'use client'
 
 import { useState, type FormEvent } from 'react'
+import { useRouter } from 'next/navigation'
 import { createSupabaseClient } from '@/lib/supabase/client'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import Link from 'next/link'
 
 export default function LoginPage() {
+  const router = useRouter()
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [sent, setSent] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Demo mode: skip auth and go straight to dashboard
+  if (process.env.NEXT_PUBLIC_DEMO_MODE === 'true') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <div className="w-full max-w-sm text-center">
+          <Link href="/" className="text-2xl font-bold text-brand-600">
+            ✈️ BizClass Alerts
+          </Link>
+          <div className="mt-8 rounded-xl border border-blue-200 bg-blue-50 p-6">
+            <p className="text-4xl mb-3">🚀</p>
+            <p className="font-semibold text-blue-800 text-lg">Demo mode</p>
+            <p className="mt-1 text-sm text-blue-600 mb-5">
+              No login required — explore the full app with demo data.
+            </p>
+            <Button className="w-full" size="lg" onClick={() => router.push('/dashboard')}>
+              Enter demo →
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -20,18 +45,12 @@ export default function LoginPage() {
     const supabase = createSupabaseClient()
     const { error: authError } = await supabase.auth.signInWithOtp({
       email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/api/auth/callback`,
-      },
+      options: { emailRedirectTo: `${window.location.origin}/api/auth/callback` },
     })
 
     setLoading(false)
-
-    if (authError) {
-      setError(authError.message)
-    } else {
-      setSent(true)
-    }
+    if (authError) setError(authError.message)
+    else setSent(true)
   }
 
   return (
@@ -54,10 +73,7 @@ export default function LoginPage() {
             <p className="mt-1 text-sm text-green-700">
               We sent a magic link to <strong>{email}</strong>. Click it to sign in.
             </p>
-            <button
-              onClick={() => setSent(false)}
-              className="mt-4 text-sm text-green-600 underline"
-            >
+            <button onClick={() => setSent(false)} className="mt-4 text-sm text-green-600 underline">
               Use a different email
             </button>
           </div>
@@ -85,14 +101,9 @@ export default function LoginPage() {
 
         <p className="mt-6 text-center text-xs text-gray-400">
           By signing in you agree to our{' '}
-          <Link href="/terms" className="underline">
-            Terms
-          </Link>{' '}
+          <Link href="/terms" className="underline">Terms</Link>{' '}
           and{' '}
-          <Link href="/privacy" className="underline">
-            Privacy Policy
-          </Link>
-          .
+          <Link href="/privacy" className="underline">Privacy Policy</Link>.
         </p>
       </div>
     </div>

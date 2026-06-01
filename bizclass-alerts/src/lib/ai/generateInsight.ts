@@ -18,7 +18,7 @@ function formatDuration(minutes: number): string {
 
 /**
  * Generates a short factual sentence explaining why this deal is notable.
- * Returns null if OpenAI key is not configured or the call fails.
+ * Returns null if OPENAI_API_KEY is not set or if the call fails for any reason.
  * Never invents data — only uses the facts passed to it.
  */
 export async function generateInsight(
@@ -36,7 +36,7 @@ export async function generateInsight(
       : null
 
   const dropPercent =
-    alert.bestPriceSeen !== null
+    alert.bestPriceSeen !== null && alert.bestPriceSeen > 0
       ? Math.round(((alert.bestPriceSeen - offer.price) / alert.bestPriceSeen) * 100)
       : null
 
@@ -63,12 +63,19 @@ export async function generateInsight(
     facts,
   ].join('\n')
 
-  const response = await client.chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages: [{ role: 'user', content: prompt }],
-    max_tokens: 60,
-    temperature: 0.2,
-  })
-
-  return response.choices[0]?.message?.content?.trim() ?? null
+  try {
+    const response = await client.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [{ role: 'user', content: prompt }],
+      max_tokens: 60,
+      temperature: 0.2,
+    })
+    return response.choices[0]?.message?.content?.trim() ?? null
+  } catch (err) {
+    console.warn(
+      '[generateInsight] OpenAI call failed:',
+      err instanceof Error ? err.message : String(err),
+    )
+    return null
+  }
 }

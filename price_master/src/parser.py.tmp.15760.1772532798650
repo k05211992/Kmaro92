@@ -1,0 +1,91 @@
+import pandas as pd
+from typing import List
+
+KEYWORDS = {
+    "name": ["наименование", "name", "product"],
+    "unit": ["ед", "unit"],
+    "price": ["цена", "price"]
+}
+
+
+def find_header_columns(df: pd.DataFrame):
+    """Try to locate header row and column names based on keywords."""
+    for idx, row in df.iterrows():
+        lower = row.astype(str).str.lower()
+        price_match = lower.str.contains('|'.join(KEYWORDS["price"]), na=False)
+        unit_match = lower.str.contains('|'.join(KEYWORDS["unit"]), na=False)
+        if not (price_match.any() and unit_match.any()):
+            continue
+        col_map = {
+            "price": lower[price_match].index.tolist(),
+            "unit": lower[unit_match].index.tolist(),
+        }
+        name_match = lower.str.contains('|'.join(KEYWORDS["name"]), na=False)
+        if name_match.any():
+            col_map["name"] = lower[name_match].index.tolist()
+        else:
+            # Infer name column: first column that is not price/unit and has text
+            used = set(col_map["price"] + col_map["unit"])
+            candidates = [c for c in lower.index if c not in used
+                          and str(row[c]).strip().lower() not in ('nan', '', 'none')]
+            if candidates:
+                col_map["name"] = [candidates[0]]
+        return idx, col_map
+    return None, {}
+
+
+def parse_file(path: str) -> pd.DataFrame:
+    """Read all sheets from an Excel file and extract raw rows."""
+    xls = pd.ExcelFile(path)
+    all_rows = []
+    for sheet in xls.sheet_names:
+        df = pd.read_excel(xls, sheet_name=sheet, header=None, dtype=str)
+        section = None
+        # iterate - detect header rows and capture subsequent data until next header
+        header_idx = None
+        col_map = {}
+        for i in range(len(df)):
+            row = df.iloc[i]
+            if row.isna().all():
+                continue
+            hi, cmap = find_header_columns(df.iloc[i:i+1])
+            if hi is not None:
+                header_idx = i
+                col_map = {}
+                for key, cols in cmap.items():
+                    if cols:
+                        col_map[key] = cols[0]
+                section = row.iloc[col_map.get('name')] if 'name' in col_map else f"section_{i}"
+                continue
+            if header_idx is not None and i > header_idx:
+                # treat as data row until next header appears
+                name = df.iat[i, col_map.get('name')] if 'name' in col_map else None
+                price = df.iat[i, col_map.get('price')] if 'price' in col_map else None
+                unit = df.iat[i, col_map.get('unit')] if 'unit' in col_map else None
+                code = None
+                if name is not None and pd.notna(name):
+                    all_rows.append({
+                        'RawName': name,
+                        'RawUnit': unit,
+                        'RawPrice': price,
+                        'SourceFile': path,
+                        'SheetName': sheet,
+                        'SectionName': section,
+                        'RowNumber': i + 1,
+                        'RawCode': code
+                    })
+    return pd.DataFrame(all_rows)
+
+
+def parse_files(paths: List[str]) -> pd.DataFrame:
+    frames = []
+    for p in paths:
+        try:
+            df = parse_file(p)
+            frames.append(df)
+        except Exception as e:
+            print(f"Error parsing {p}: {e}")
+    if frames:
+        return pd.concat(frames, ignore_index=True)
+    else:
+        return pd.DataFrame(columns=['RawName','RawUnit','RawPrice','SourceFile','SheetName','SectionName','RowNumber','RawCode'])

@@ -3,12 +3,9 @@ import type { NormalizedFlightOffer } from '@/lib/providers/types'
 
 export type NotifyReason = 'below_threshold' | 'price_drop'
 
-export interface NotifyDecision {
-  shouldNotify: true
-  reason: NotifyReason
-} | {
-  shouldNotify: false
-}
+export type NotifyDecision =
+  | { shouldNotify: true; reason: NotifyReason }
+  | { shouldNotify: false }
 
 interface AlertPricingContext {
   maxPrice: number

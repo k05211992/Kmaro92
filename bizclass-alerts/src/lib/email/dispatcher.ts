@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db'
-import { sendOfferNotification } from './notifications'
-import type { NotifyReason } from '@/lib/jobs/worthyToNotify'
+import { sendOfferEmail } from './sendOfferEmail'
+import type { DispatchResult } from '@/lib/telegram/dispatcher'
 
 type LogLevel = 'info' | 'warn' | 'error'
 function log(level: LogLevel, event: string, data?: Record<string, unknown>) {
@@ -10,27 +10,17 @@ function log(level: LogLevel, event: string, data?: Record<string, unknown>) {
   else console.log(JSON.stringify(entry))
 }
 
-export interface DispatchResult {
-  sent: number
-  failed: number
-  skipped: number
-}
-
 /**
- * Reads all `pending` Telegram notifications from the DB and attempts to send them.
+ * Sends all pending email notifications.
  *
- * - On success: marks notification as `sent`.
- * - On failure: marks notification as `failed` with the error message.
- * - If the user has no Telegram account linked yet: leaves as `pending`
- *   so it will be retried the next time the cron runs (or when the user links).
- *
- * Called at the end of each cron run so instant alerts go out immediately.
+ * Email notifications are created when a worthy offer is found for a user who
+ * has no Telegram account linked. Called at the end of each cron run.
  */
-export async function dispatchPendingNotifications(): Promise<DispatchResult> {
+export async function dispatchPendingEmailNotifications(): Promise<DispatchResult> {
   const result: DispatchResult = { sent: 0, failed: 0, skipped: 0 }
 
   const pending = await prisma.notification.findMany({
-    where: { status: 'pending', channel: 'telegram' },
+    where: { status: 'pending', channel: 'email' },
     include: {
       alert: { include: { user: true } },
       offer: true,
@@ -39,26 +29,18 @@ export async function dispatchPendingNotifications(): Promise<DispatchResult> {
     take: 100,
   })
 
-  log('info', 'dispatcher.start', { pending: pending.length })
+  log('info', 'email_dispatcher.start', { pending: pending.length })
 
   for (const notif of pending) {
-    const chatId = notif.alert.user.telegramChatId
     const ctx = { notifId: notif.id, alertId: notif.alertId }
-
-    if (!chatId) {
-      // User hasn't connected Telegram yet — leave as pending for next run
-      log('info', 'dispatcher.no_chat_id', ctx)
-      result.skipped++
-      continue
-    }
+    const email = notif.alert.user.email
 
     try {
-      await sendOfferNotification({
-        chatId: Number(chatId),
+      await sendOfferEmail({
+        to: email,
         alert: {
           origin: notif.alert.origin,
           destination: notif.alert.destination,
-          tripType: notif.alert.tripType as 'one_way' | 'round_trip',
           maxPrice: Number(notif.alert.maxPrice),
           currency: notif.alert.currency,
         },
@@ -73,7 +55,7 @@ export async function dispatchPendingNotifications(): Promise<DispatchResult> {
           isFullBusiness: notif.offer.isFullBusiness,
           airlineCodes: JSON.parse(notif.offer.airlineCodes) as string[],
         },
-        reason: notif.reason as NotifyReason,
+        reason: notif.reason as 'below_threshold' | 'price_drop',
         aiInsight: notif.aiInsight,
         deepLink: notif.offer.deepLink,
       })
@@ -83,11 +65,11 @@ export async function dispatchPendingNotifications(): Promise<DispatchResult> {
         data: { status: 'sent', sentAt: new Date() },
       })
 
-      log('info', 'dispatcher.sent', { ...ctx, chatId: String(chatId) })
+      log('info', 'email_dispatcher.sent', { ...ctx, to: email })
       result.sent++
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : String(err)
-      log('error', 'dispatcher.send_failed', { ...ctx, error: errorMessage })
+      log('error', 'email_dispatcher.send_failed', { ...ctx, to: email, error: errorMessage })
 
       await prisma.notification
         .update({
@@ -100,6 +82,6 @@ export async function dispatchPendingNotifications(): Promise<DispatchResult> {
     }
   }
 
-  log('info', 'dispatcher.done', { ...result })
+  log('info', 'email_dispatcher.done', { ...result })
   return result
 }

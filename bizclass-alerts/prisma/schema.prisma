@@ -3,64 +3,17 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  // Transaction pooler URL — use for runtime queries (PgBouncer compatible)
-  url       = env("DATABASE_URL")
-  // Direct connection URL — required by Prisma for migrations
-  directUrl = env("DIRECT_URL")
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
-// =============================================================================
-// ENUMS
-// =============================================================================
-
-enum AlertStatus {
-  active
-  paused
-  archived
-}
-
-enum TripType {
-  one_way
-  round_trip
-}
-
-enum NotifFrequency {
-  instant
-  daily_digest
-}
-
-enum NotifChannel {
-  telegram
-  email
-}
-
-enum NotifReason {
-  below_threshold
-  price_drop
-}
-
-enum NotifStatus {
-  pending
-  sent
-  failed
-}
-
-enum SearchRunStatus {
-  ok
-  empty
-  error
-}
-
-// =============================================================================
-// MODEL: User
-// Same UUID as Supabase auth.users. Created on first interaction.
-// =============================================================================
+// SQLite does not support native enums — all enum-like fields use String.
+// Valid values are enforced at the application layer (Zod, TypeScript).
 
 model User {
-  id                    String    @id @db.Uuid
+  id                    String    @id
   email                 String    @unique
-  telegramChatId        BigInt?   @map("telegram_chat_id")
+  telegramChatId        String?   @map("telegram_chat_id")
   telegramUsername      String?   @map("telegram_username")
   telegramLinkToken     String?   @map("telegram_link_token")
   telegramLinkExpiresAt DateTime? @map("telegram_link_expires_at")
@@ -76,45 +29,28 @@ model User {
   @@map("users")
 }
 
-// =============================================================================
-// MODEL: Alert
-// =============================================================================
-
 model Alert {
-  id                 String          @id @default(uuid()) @db.Uuid
-  userId             String          @map("user_id") @db.Uuid
-  status             AlertStatus     @default(active)
-
-  // Route
-  origin             String          @db.VarChar(10)
-  destination        String          @db.VarChar(10)
-
-  // Dates
-  tripType           TripType        @map("trip_type")
-  departDateFrom     DateTime        @map("depart_date_from") @db.Date
-  departDateTo       DateTime?       @map("depart_date_to") @db.Date
-  returnDateFrom     DateTime?       @map("return_date_from") @db.Date
-  returnDateTo       DateTime?       @map("return_date_to") @db.Date
-
-  // Price criteria
-  cabinClass         String          @default("business") @map("cabin_class") @db.VarChar(20)
-  maxPrice           Decimal         @map("max_price") @db.Decimal(10, 2)
-  currency           String          @db.Char(3)
-
-  // Filters
-  maxStops           Int             @default(1) @map("max_stops") @db.SmallInt
-  maxDurationMinutes Int?            @map("max_duration_minutes")
-  nearbyAirports     Boolean         @default(false) @map("nearby_airports")
-
-  // Notification settings
-  notifFrequency     NotifFrequency  @default(instant) @map("notif_frequency")
-
-  // Tracking
-  lastCheckedAt      DateTime?       @map("last_checked_at")
-  bestPriceSeen      Decimal?        @map("best_price_seen") @db.Decimal(10, 2)
-
-  createdAt          DateTime        @default(now()) @map("created_at")
-  updatedAt          DateTime        @updatedAt @map("updated_at")
+  id                 String    @id @default(uuid())
+  userId             String    @map("user_id")
+  status             String    @default("active")   // active | paused | archived
+  origin             String
+  destination        String
+  tripType           String    @map("trip_type")    // one_way | round_trip
+  departDateFrom     DateTime  @map("depart_date_from")
+  departDateTo       DateTime? @map("depart_date_to")
+  returnDateFrom     DateTime? @map("return_date_from")
+  returnDateTo       DateTime? @map("return_date_to")
+  cabinClass         String    @default("business") @map("cabin_class")
+  maxPrice           Float     @map("max_price")
+  currency           String
+  maxStops           Int       @default(1) @map("max_stops")
+  maxDurationMinutes Int?      @map("max_duration_minutes")
+  nearbyAirports     Boolean   @default(false) @map("nearby_airports")
+  notifFrequency     String    @default("instant") @map("notif_frequency")  // instant | daily_digest
+  lastCheckedAt      DateTime? @map("last_checked_at")
+  bestPriceSeen      Float?    @map("best_price_seen")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
 
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   flightOffers  FlightOffer[]
@@ -126,22 +62,17 @@ model Alert {
   @@map("alerts")
 }
 
-// =============================================================================
-// MODEL: SearchRun
-// One row per cron execution per alert. Used for debugging + auditing.
-// =============================================================================
-
 model SearchRun {
-  id               String          @id @default(uuid()) @db.Uuid
-  alertId          String          @map("alert_id") @db.Uuid
-  provider         String          @db.VarChar(50)
-  runAt            DateTime        @default(now()) @map("run_at")
-  durationMs       Int?            @map("duration_ms")
-  rawResultsCount  Int             @default(0) @map("raw_results_count")
-  filteredCount    Int             @default(0) @map("filtered_count")
-  worthyCount      Int             @default(0) @map("worthy_count")
-  status           SearchRunStatus @default(ok)
-  errorMessage     String?         @map("error_message")
+  id              String   @id @default(uuid())
+  alertId         String   @map("alert_id")
+  provider        String
+  runAt           DateTime @default(now()) @map("run_at")
+  durationMs      Int?     @map("duration_ms")
+  rawResultsCount Int      @default(0) @map("raw_results_count")
+  filteredCount   Int      @default(0) @map("filtered_count")
+  worthyCount     Int      @default(0) @map("worthy_count")
+  status          String   @default("ok")   // ok | empty | error
+  errorMessage    String?  @map("error_message")
 
   alert        Alert         @relation(fields: [alertId], references: [id], onDelete: Cascade)
   flightOffers FlightOffer[]
@@ -150,42 +81,27 @@ model SearchRun {
   @@map("search_runs")
 }
 
-// =============================================================================
-// MODEL: FlightOffer
-// =============================================================================
-
 model FlightOffer {
-  id             String    @id @default(uuid()) @db.Uuid
-  alertId        String    @map("alert_id") @db.Uuid
-  searchRunId    String?   @map("search_run_id") @db.Uuid
-  provider       String    @db.VarChar(50)
-
-  // Itinerary
-  origin         String    @db.VarChar(10)
-  destination    String    @db.VarChar(10)
-  departAt       DateTime  @map("depart_at")
-  arriveAt       DateTime  @map("arrive_at")
-  returnDepartAt DateTime? @map("return_depart_at")
-  returnArriveAt DateTime? @map("return_arrive_at")
-
-  // Pricing
-  price          Decimal   @db.Decimal(10, 2)
-  currency       String    @db.Char(3)
-
-  // Flight details
-  stops          Int       @db.SmallInt
-  durationMinutes Int      @map("duration_minutes")
-  isFullBusiness Boolean   @default(true) @map("is_full_business")
-  airlineCodes   String[]  @map("airline_codes")
-
-  // Booking
-  deepLink       String    @map("deep_link")
-  rawData        Json      @map("raw_data")
-
-  // Deduplication hash: SHA-256(alertId|route|departAt[min]|price|currency|stops|cabin)
-  hashForDedup   String    @unique @map("hash_for_dedup") @db.VarChar(64)
-
-  foundAt        DateTime  @default(now()) @map("found_at")
+  id              String    @id @default(uuid())
+  alertId         String    @map("alert_id")
+  searchRunId     String?   @map("search_run_id")
+  provider        String
+  origin          String
+  destination     String
+  departAt        DateTime  @map("depart_at")
+  arriveAt        DateTime  @map("arrive_at")
+  returnDepartAt  DateTime? @map("return_depart_at")
+  returnArriveAt  DateTime? @map("return_arrive_at")
+  price           Float
+  currency        String
+  stops           Int
+  durationMinutes Int       @map("duration_minutes")
+  isFullBusiness  Boolean   @default(true) @map("is_full_business")
+  airlineCodes    String    @map("airline_codes")   // JSON array string
+  deepLink        String    @map("deep_link")
+  rawData         String    @map("raw_data")        // JSON string
+  hashForDedup    String    @unique @map("hash_for_dedup")
+  foundAt         DateTime  @default(now()) @map("found_at")
 
   alert         Alert          @relation(fields: [alertId], references: [id], onDelete: Cascade)
   searchRun     SearchRun?     @relation(fields: [searchRunId], references: [id], onDelete: SetNull)
@@ -196,23 +112,18 @@ model FlightOffer {
   @@map("flight_offers")
 }
 
-// =============================================================================
-// MODEL: Notification
-// Audit log of every notification attempt (sent or failed).
-// =============================================================================
-
 model Notification {
-  id           String       @id @default(uuid()) @db.Uuid
-  alertId      String       @map("alert_id") @db.Uuid
-  offerId      String       @map("offer_id") @db.Uuid
-  userId       String       @map("user_id") @db.Uuid
-  channel      NotifChannel
-  reason       NotifReason
-  aiInsight    String?      @map("ai_insight")
-  status       NotifStatus  @default(pending)
-  errorMessage String?      @map("error_message")
-  sentAt       DateTime?    @map("sent_at")
-  createdAt    DateTime     @default(now()) @map("created_at")
+  id           String    @id @default(uuid())
+  alertId      String    @map("alert_id")
+  offerId      String    @map("offer_id")
+  userId       String    @map("user_id")
+  channel      String    // telegram | email
+  reason       String    // below_threshold | price_drop
+  aiInsight    String?   @map("ai_insight")
+  status       String    @default("pending")  // pending | sent | failed
+  errorMessage String?   @map("error_message")
+  sentAt       DateTime? @map("sent_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
 
   alert Alert       @relation(fields: [alertId], references: [id], onDelete: Cascade)
   offer FlightOffer @relation(fields: [offerId], references: [id], onDelete: Cascade)
